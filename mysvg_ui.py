@@ -3,14 +3,21 @@ import tkinter.messagebox as tk_mb
 from tkinter import ttk
 from tkinter import filedialog
 from PIL import ImageTk,Image
-import mysvg
 import os
 import cairosvg
+import sys
+
+import mysvg
 import utility
 import ai2svg_my as ai2svg
 
+
 LARGEFONT = ("Verdana", 20)
-base_dir = os.path.dirname(__file__)
+# base_dir = os.path.dirname(__file__)
+try:
+    base_dir = sys._MEIPASS
+except:
+    base_dir = os.path.dirname(__file__)
 
 
 class tkinterApp(tk.Tk):
@@ -41,19 +48,22 @@ class tkinterApp(tk.Tk):
 
         self.init_params()
 
-        self.frames = {}
-
-        for F in (SelectPattern, SelectPatternUp, SelectPatternInclined, SelectPatternRandom, SetParams, AddTiles):
-            frame = F(self.scrollable_frame, self)
-            self.frames[F] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
+        # self.frames = {}
+        #
+        # for F in (SelectPattern, SelectPatternUp, SelectPatternInclined, SelectPatternRandom, SetParams, AddTiles):
+        #     frame = F(self.scrollable_frame, self)
+        #     self.frames[F] = frame
+        #     frame.grid(row=0, column=0, sticky="nsew")
 
         self.show_frame(SelectPattern)
 
     # to display the current frame passed as parameter
     def show_frame(self, cont):
-        frame = self.frames[cont]
+        frame = cont(self.scrollable_frame, self)
+        frame.grid(row=0, column=0, sticky="nsew")
         frame.tkraise()
+        # frame = self.frames[cont]
+        # frame.tkraise()
 
     def show_frame2(self, cont):
         frame = cont(self.scrollable_frame, self)
@@ -92,6 +102,8 @@ class SelectPattern(tk.Frame):
 
         tk.Frame.__init__(self, parent)
         self.controller = controller
+
+        self.controller.geometry('600x360+10+10')
 
         label = ttk.Label(self, text="请选择排版样式", font=LARGEFONT)
         label.grid(row=0, column=0, padx=10, pady=10, columnspan=3, sticky='W')
@@ -182,6 +194,7 @@ class SelectPattern2(tk.Frame):
 class SelectPatternUp(SelectPattern2):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
+        self.controller.geometry('600x740+10+10')
         self.rb_texts = ['错位', '上下', '同排同图', '同排镜像', '同排错位', '同排同方向', '同排对称']
         self.rb_vals = ['up_up', 'up_down', 'up_up_flower', 'up_up_house','up_up_zebra', 'left_right_shrimp', 'left_right']
         self.patterns = [i + '.png' for i in self.rb_vals]
@@ -210,6 +223,8 @@ class SetParams(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
+
+        self.controller.geometry('600x450+10+10')
 
         self.columnconfigure(0, weight=3)
         self.columnconfigure(1, weight=3)
@@ -260,14 +275,14 @@ class SetParams(tk.Frame):
         self.save_path_entry = ttk.Entry(self,width=30)
         self.save_path_entry.grid(row=5, column=1, columnspan=3, sticky=tk.W, padx=10, pady=10)
         save_path_button = ttk.Button(self, text='选择', width=4, command=self.choose_save_path)
-        save_path_button.grid(row=5, column=3, sticky=tk.E, padx=10)
-        self.save_path_entry.insert(0,'/Users/xiangyichen/PycharmProjects/Pattern_Design/output')
+        save_path_button.grid(row=5, column=3, sticky=tk.W, padx=10)
+        # self.save_path_entry.insert(0,'/Users/xiangyichen/PycharmProjects/Pattern_Design/output')
 
         save_name_label = ttk.Label(self, text='花型存储名称')
         save_name_label.grid(row=6, column=0, sticky=tk.W, padx=10, pady=10)
         self.save_name_entry = ttk.Entry(self, width=30)
         self.save_name_entry.grid(row=6, column=1, columnspan=3, sticky=tk.W, padx=10, pady=10)
-        self.save_name_entry.insert(0,'test2')
+        # self.save_name_entry.insert(0,'test2')
 
         dpi_label = ttk.Label(self, text='PNG保存分辨率')
         dpi_label.grid(row=7, column=0, sticky=tk.W, padx=10, pady=10)
@@ -324,12 +339,14 @@ class AddTiles(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
+        self.controller.geometry('600x400+10+10')
+
         self.added_tile_rows = 0 # number of rows shown on window
 
         label = ttk.Label(self, text="请添加元素", font=LARGEFONT, width=30)
         label.grid(row=0, column=0, padx=10, pady=10, columnspan=3, sticky='W')
 
-        self.add_tile_button = ttk.Button(self, text='添加一行', width=6, command=self.add_add_tile_row)
+        self.add_tile_button = ttk.Button(self, text='添加一行', width=8, command=self.add_add_tile_row)
 
         self.button1 = ttk.Button(self, text="上一步",
                              command=lambda: controller.show_frame(SetParams))
@@ -393,9 +410,9 @@ class AddTiles(tk.Frame):
         self.__getattribute__('tiled_label' + str(self.added_tile_rows)).grid(row=self.added_tile_rows, column=0, sticky=tk.W, padx=10, pady=10)
         self.__setattr__('tiled_entry' + str(self.added_tile_rows), ttk.Entry(self, width=25))
         self.__getattribute__('tiled_entry' + str(self.added_tile_rows)).grid(row=self.added_tile_rows, column=1, sticky=tk.W, padx=10, pady=10)
-        self.__setattr__('sel_btn' + str(self.added_tile_rows), ttk.Button(self, text='选择', width=3, command=self.sel_pattern(self.added_tile_rows)))
+        self.__setattr__('sel_btn' + str(self.added_tile_rows), ttk.Button(self, text='选择', width=5, command=self.sel_pattern(self.added_tile_rows)))
         self.__getattribute__('sel_btn' + str(self.added_tile_rows)).grid(row=self.added_tile_rows, column=2, sticky=tk.W, padx=1, pady=10)
-        self.__setattr__('del_btn' + str(self.added_tile_rows), ttk.Button(self, text='删除', width=3, command=self.del_row(self.added_tile_rows)))
+        self.__setattr__('del_btn' + str(self.added_tile_rows), ttk.Button(self, text='删除', width=5, command=self.del_row(self.added_tile_rows)))
         self.__getattribute__('del_btn' + str(self.added_tile_rows)).grid(row=self.added_tile_rows, column=3, sticky=tk.W, padx=1, pady=10)
 
         self.add_tile_button.grid(row=self.added_tile_rows + 1, column=1, sticky=tk.W, padx=10)
@@ -433,7 +450,7 @@ class AddTiles(tk.Frame):
 
 
         cairosvg.svg2png(url=save_file, write_to=save_file.replace('svg','png'), dpi=float(self.controller.dpi.get()))
-        self.controller.show_frame2(PreviewPattern)
+        self.controller.show_frame(PreviewPattern)
 
 
 
@@ -441,6 +458,10 @@ class PreviewPattern(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
+
+        w = self.controller.canvas_w + 50
+        h = self.controller.canvas_h + 500
+        self.controller.geometry(str(w)+"x"+str(h)+"+10+10")
 
         label = ttk.Label(self, text="生成花型预览和微调", font=LARGEFONT)
         label.grid(row=0, column=0, padx=10, pady=10, columnspan=4, sticky='W')
@@ -576,7 +597,7 @@ class PreviewPattern(tk.Frame):
 
         cairosvg.svg2png(url=self.controller.save_file_svg, write_to=self.controller.save_file_svg.replace('svg', 'png'), dpi=int(self.controller.dpi.get()))
 
-        self.controller.show_frame2(PreviewPattern)
+        self.controller.show_frame(PreviewPattern)
 
     def prev_step(self):
         self.controller.tile_paths = []
@@ -586,7 +607,7 @@ class PreviewPattern(tk.Frame):
         answer = tk_mb.askyesno(title='是否进入下一步', message='一旦进入下一步（颜色编辑），不可再返回进行微调，是否进入下一步？')
         if answer:
             self.controller.all_colors = utility.find_all_color(*self.controller.tile_paths)
-            self.controller.show_frame2(EditColor)
+            self.controller.show_frame(EditColor)
 
 
 
@@ -599,6 +620,8 @@ class EditColor(tk.Frame):
 
         tk.Frame.__init__(self, parent)
         self.controller = controller
+
+        self.controller.geometry('600x600+10+10')
 
         label = ttk.Label(self, text="颜色信息和颜色编辑", font=LARGEFONT)
         label.grid(row=0, column=0, padx=10, pady=10, columnspan=3, sticky='W')
@@ -670,7 +693,7 @@ class EditColor(tk.Frame):
     #     if self.controller.color_editted:
     #         tk_mb.showwarning('您已进行过颜色编辑，不可再返回微调')
     #         return
-    #     self.controller.show_frame2(PreviewPattern)
+    #     self.controller.show_frame(PreviewPattern)
 
     def reduce_color_preview(self):
 
@@ -715,7 +738,7 @@ class EditColor(tk.Frame):
         self.controller.save_file_svg_tmp = new_path
         cairosvg.svg2png(url=new_path,write_to=new_path.replace('svg','png'),dpi=float(self.controller.dpi.get()))
 
-        self.controller.show_frame2(PreviewPatternColor)
+        self.controller.show_frame(PreviewPatternColor)
 
     def change_color_preview(self):
 
@@ -750,7 +773,7 @@ class EditColor(tk.Frame):
         self.controller.save_file_svg_tmp = new_path
         cairosvg.svg2png(url=new_path, write_to=new_path.replace('svg', 'png'), dpi=float(self.controller.dpi.get()))
 
-        self.controller.show_frame2(PreviewPatternColor)
+        self.controller.show_frame(PreviewPatternColor)
 
 
 
@@ -760,6 +783,10 @@ class PreviewPatternColor(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
+
+        w = self.controller.canvas_w + 50
+        h = self.controller.canvas_h + 100
+        self.controller.geometry(str(w)+"x"+str(h)+"+10+10")
 
         label = ttk.Label(self, text="改色后花型预览", font=LARGEFONT)
         label.grid(row=0, column=0, padx=10, pady=10, columnspan=4, sticky='W')
@@ -780,7 +807,7 @@ class PreviewPatternColor(tk.Frame):
     def cancel(self):
         os.remove(self.controller.save_file_svg_tmp)
         os.remove(self.controller.save_file_svg_tmp.replace('svg','png'))
-        self.controller.show_frame2(EditColor)
+        self.controller.show_frame(EditColor)
 
 
     def confirm(self):
@@ -803,7 +830,7 @@ class PreviewPatternColor(tk.Frame):
                 self.controller.all_colors = self.controller.changed_colors
                 self.controller.changed_colors = None
 
-            self.controller.show_frame2(EditColor)
+            self.controller.show_frame(EditColor)
 
 
 

@@ -63,11 +63,13 @@ class Mysvg(SVG):
 
     def flip(self,flip_val=1): # flip_val=1:左右  flip_val=2:上下
         if flip_val==1:
+            super(Mysvg, self).move(-self.width, 0)
             super(Mysvg, self).scale(x=-1, y=1)
-            super(Mysvg, self).move(self.width,0)
+
         if flip_val==2:
+            super(Mysvg, self).move(0, -self.height)
             super(Mysvg, self).scale(x=1, y=-1)
-            super(Mysvg, self).move(0, self.height)
+
         return self
 
     def resize(self,size):
@@ -87,9 +89,23 @@ class Mysvg(SVG):
 
 
 
-# mysvg = Mysvg('/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/goat.svg')
+# mysvg = Mysvg('/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/dog.svg')
 # mysvg.resize(0.5)
-# mysvg.save("/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/dog_editted_resized.svg")
+# # mysvg.save("/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/dog_flip.svg")
+#
+# tiled_svgs = []
+# for i in range(6):
+#
+#     curr = deepcopy(mysvg)
+#     curr.flip(i%2)
+#     curr.move_center_to(100*i,50)
+#     tiled_svgs.append(curr)
+#
+#
+# Figure(3000, 500, *tiled_svgs).save("/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/test5.svg")
+
+
+
 
 
 # for i in range(7):
@@ -400,20 +416,22 @@ class Layout_svg(Layout):
         tiled_svg = []
         for i in range(len(positions_use)):
             curr_svg = deepcopy(self.mysvg_list[pattern_select_use[i]])
-            curr_svg = curr_svg.move_center_to(*positions_use[i])
-            curr_svg = curr_svg.rotate(rotate_use[i])
+
             curr_svg = curr_svg.flip(flip_use[i])
+            curr_svg = curr_svg.rotate(rotate_use[i])
+
+            curr_svg = curr_svg.move_center_to(*positions_use[i])
+
 
             tiled_svg.append(curr_svg)
 
         Figure(str(self.w), str(self.h), *tiled_svg).save(savepath)
 
 #%%
-# lion = Mysvg('./svg_imgs/lion.svg')
-# goat = Mysvg('./svg_imgs/goat.svg')
-# pig = Mysvg('./svg_imgs/pig.svg')
-# monkey = Mysvg('./svg_imgs/monkey.svg')
-# animals = [lion,goat,pig,monkey]
+dog = Mysvg('./input_ai/dog.svg')
+panda = Mysvg('./input_ai/panda.svg')
+elephant = Mysvg('./input_ai/elephant.svg')
+animals = [dog, panda, elephant]
 
 #
 # flower = Mysvg('./tiles/flower.svg')
@@ -450,8 +468,8 @@ class Layout_svg(Layout):
 # layout_svg = Layout_svg(h=600, w=1000, pattern_interval_x=120, pattern_interval_y=75, mysvg_list=[flower])
 # layout_svg.do_layout(style='up_up', savepath='./svg_layout/up_up.svg')
 
-# layout_svg = Layout_svg(h=600, w=1000, pattern_interval_x=150, pattern_interval_y=150, mysvg_list=[goat.resize(0.7),pig.resize(0.7),monkey.resize(0.7)])
-# layout_svg.do_layout(style='up_up_house', savepath='./svg_layout/up_up_house.svg')
+# layout_svg = Layout_svg(h=600, w=1000, pattern_interval_x=150, pattern_interval_y=150, mysvg_list=[i.resize(float(50/i.width)) for i in animals])
+# layout_svg.do_layout(style='up_up_house', savepath='./input_ai/up_up_house.svg')
 
 # layout_svg = Layout_svg(h=600, w=1000, pattern_interval_x=100, pattern_interval_y=150, mysvg_list=[flower1,flower2,flower3,flower4])
 # layout_svg.do_layout(style='up_up_flower', savepath='./svg_layout/up_up_flower.svg')

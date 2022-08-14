@@ -185,8 +185,8 @@ def ai2svg(ai_filename, svg_filename):
 
 
 #
-# ai_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/goat.ai'
-# svg_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/goat.svg'
-#
-# ret = ai2svg(ai_filename,svg_filename)
-# print(ret)
+ai_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/elephant.ai'
+svg_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/elephant.svg'
+
+ret = ai2svg(ai_filename,svg_filename)
+print(ret)
