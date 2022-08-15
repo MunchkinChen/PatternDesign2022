@@ -3,6 +3,11 @@ import re
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+from selenium.webdriver import Chrome
+from selenium.webdriver import ChromeOptions
+import os
+
+
 
 # given a svg image, return all colors
 def find_all_color(*svg_path_list):
@@ -257,3 +262,33 @@ def change_color(color_RGB,a=180,b=0,l=0):
 # res = r.balance_rotate(-170,50)
 # print(res)
 
+#%%
+import selenium
+from selenium.webdriver import Chrome
+from selenium.webdriver import ChromeOptions
+import os
+def my_svg2png(svg_path,png_path,w,h,base_dir = os.path.dirname(__file__)):
+    cr_options = ChromeOptions()
+    cr_options.headless = True
+    driver = Chrome(options=cr_options, executable_path=os.path.join(base_dir, 'chromedriver'))
+    driver.set_window_size(w, h)
+    try:
+        driver.get('file://'+svg_path)
+        driver.save_screenshot(png_path)
+    except Exception as e:
+        print('图片转化不成功，无法预览生成花型')
+        print(e)
+    driver.close()
+
+
+
+
+# svg_path ='/Users/xiangyichen/Desktop/tmp/test4.svg'
+# my_svg2png(svg_path,svg_path.replace('svg','png'),600,400,'/Users/xiangyichen/PycharmProjects/Pattern_Design/')
+#
+# #%%
+# from selenium.webdriver import Chrome
+# driver = Chrome(executable_path='./chromedriver')
+# svg_path ='/Users/xiangyichen/Desktop/tmp/test4.svg'
+# driver.get('file://'+svg_path)
+# driver.close()

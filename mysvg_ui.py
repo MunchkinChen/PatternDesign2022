@@ -4,8 +4,8 @@ from tkinter import ttk
 from tkinter import filedialog
 from PIL import ImageTk,Image
 import os
-import cairosvg
 import sys
+# import cairosvg
 
 import mysvg
 import utility
@@ -449,7 +449,13 @@ class AddTiles(tk.Frame):
 
 
 
-        cairosvg.svg2png(url=save_file, write_to=save_file.replace('svg','png'), dpi=float(self.controller.dpi.get()))
+        # cairosvg.svg2png(url=save_file, write_to=save_file.replace('svg','png'), dpi=float(self.controller.dpi.get()))
+
+        # pic = svg2rlg(save_file)
+        # renderPM.drawToFile(pic,save_file.replace('svg','png'))
+
+
+        utility.my_svg2png(save_file,save_file.replace('svg','png'),self.controller.canvas_w,self.controller.canvas_h,base_dir)
         self.controller.show_frame(PreviewPattern)
 
 
@@ -595,7 +601,13 @@ class PreviewPattern(tk.Frame):
                                       pattern_interval_y=self.controller.pattern_interval_x)
         new_layout_svg.do_layout(style=self.controller.pattern_select2.get(), savepath=self.controller.save_file_svg, load_params_dict=new_dict)
 
-        cairosvg.svg2png(url=self.controller.save_file_svg, write_to=self.controller.save_file_svg.replace('svg', 'png'), dpi=int(self.controller.dpi.get()))
+        # cairosvg.svg2png(url=self.controller.save_file_svg, write_to=self.controller.save_file_svg.replace('svg', 'png'), dpi=int(self.controller.dpi.get()))
+
+        # pic = svg2rlg(self.controller.save_file_svg)
+        # renderPM.drawToFile(pic, self.controller.save_file_svg.replace('svg', 'png'))
+
+        utility.my_svg2png(self.controller.save_file_svg, self.controller.save_file_svg.replace('svg', 'png'), self.controller.canvas_w,
+                           self.controller.canvas_h, base_dir)
 
         self.controller.show_frame(PreviewPattern)
 
@@ -736,7 +748,15 @@ class EditColor(tk.Frame):
         utility.replace_color(old_path,self.controller.all_colors,self.controller.color_labels,self.controller.reduced_colors,new_path)
 
         self.controller.save_file_svg_tmp = new_path
-        cairosvg.svg2png(url=new_path,write_to=new_path.replace('svg','png'),dpi=float(self.controller.dpi.get()))
+
+        # cairosvg.svg2png(url=new_path,write_to=new_path.replace('svg','png'),dpi=float(self.controller.dpi.get()))
+
+        # pic = svg2rlg(new_path)
+        # renderPM.drawToFile(pic, new_path.replace('svg', 'png'), FMT="PNG", dpi=float(self.controller.dpi.get()))
+
+        utility.my_svg2png(new_path, new_path.replace('svg', 'png'),
+                           self.controller.canvas_w,
+                           self.controller.canvas_h, base_dir)
 
         self.controller.show_frame(PreviewPatternColor)
 
@@ -771,7 +791,17 @@ class EditColor(tk.Frame):
                               self.controller.changed_colors, new_path)
 
         self.controller.save_file_svg_tmp = new_path
-        cairosvg.svg2png(url=new_path, write_to=new_path.replace('svg', 'png'), dpi=float(self.controller.dpi.get()))
+
+        # cairosvg.svg2png(url=new_path, write_to=new_path.replace('svg', 'png'), dpi=float(self.controller.dpi.get()))
+
+        # pic = svg2rlg(new_path)
+        # renderPM.drawToFile(pic, new_path.replace('svg', 'png'))
+
+        utility.my_svg2png(new_path, new_path.replace('svg', 'png'),
+                           self.controller.canvas_w,
+                           self.controller.canvas_h, base_dir)
+
+
 
         self.controller.show_frame(PreviewPatternColor)
 

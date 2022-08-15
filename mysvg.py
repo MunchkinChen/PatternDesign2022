@@ -5,7 +5,7 @@ import random
 import xml.etree.ElementTree as ET
 import re
 import math
-import numpy as np
+# import numpy as np
 
 def preprocess_svg_hw(svg_path):
     tree = ET.parse(svg_path)
@@ -428,10 +428,10 @@ class Layout_svg(Layout):
         Figure(str(self.w), str(self.h), *tiled_svg).save(savepath)
 
 #%%
-dog = Mysvg('./input_ai/dog.svg')
-panda = Mysvg('./input_ai/panda.svg')
-elephant = Mysvg('./input_ai/elephant.svg')
-animals = [dog, panda, elephant]
+# dog = Mysvg('./input_ai/dog.svg')
+# panda = Mysvg('./input_ai/panda.svg')
+# elephant = Mysvg('./input_ai/elephant.svg')
+# animals = [dog, panda, elephant]
 
 #
 # flower = Mysvg('./tiles/flower.svg')

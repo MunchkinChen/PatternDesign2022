@@ -1,20 +1,17 @@
 #!/usr/bin/python
-import sys
-import os
+# import sys
+# import os
 import re
-import getopt
-import string
-import chardet
+# import getopt
+# import string
+# import chardet
 
 color_set = 'cmyk'
-
-
 
 class Path:
     def __init__(self,css_color=None):
         self.fill = css_color
         self.d = ""
-
 
 def color_to_css(*color_tuple):
     if len(color_tuple) == 4:
@@ -185,8 +182,8 @@ def ai2svg(ai_filename, svg_filename):
 
 
 #
-ai_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/elephant.ai'
-svg_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/elephant.svg'
-
-ret = ai2svg(ai_filename,svg_filename)
-print(ret)
+# ai_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/elephant.ai'
+# svg_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/elephant.svg'
+#
+# ret = ai2svg(ai_filename,svg_filename)
+# print(ret)
