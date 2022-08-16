@@ -263,16 +263,14 @@ def change_color(color_RGB,a=180,b=0,l=0):
 # print(res)
 
 #%%
-import selenium
-from selenium.webdriver import Chrome
-from selenium.webdriver import ChromeOptions
-import os
+
 def my_svg2png(svg_path,png_path,w,h,base_dir = os.path.dirname(__file__)):
     cr_options = ChromeOptions()
     cr_options.headless = True
-    driver = Chrome(options=cr_options, executable_path=os.path.join(base_dir, 'chromedriver'))
-    driver.set_window_size(w, h)
+
     try:
+        driver = Chrome(options=cr_options, executable_path=os.path.join(base_dir, 'chromedriver'))
+        driver.set_window_size(w, h)
         driver.get('file://'+svg_path)
         driver.save_screenshot(png_path)
     except Exception as e:

@@ -176,8 +176,10 @@ def ai2svg(ai_filename, svg_filename):
         for path in paths:
             outf.write('''\n <path style="fill:{fill_color};" d="{d}" /> \n'''.format(fill_color=path.fill, d=path.d))
         outf.write('</svg>')
+        outf.close
 
     dump_output(paths, svg_filename)
+    inf.close()
     return 1
 
 

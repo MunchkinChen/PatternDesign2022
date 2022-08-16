@@ -1,4 +1,6 @@
 #%%
+import os
+
 from svgutils.compose import *
 from copy import deepcopy
 import random
@@ -87,6 +89,11 @@ class Mysvg(SVG):
         super(Mysvg, self).move(left_top_x,left_top_y)
         return self
 
+    # 把自己重复好多遍
+    def seamless_concat(self):
+        pass
+
+
 
 
 # mysvg = Mysvg('/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/dog.svg')
@@ -148,14 +155,15 @@ class Layout:
         # default value for shift
         if not isinstance(shift, tuple):
             shift = (0,0)
-        shift = (dx//2 + shift[0], dy//2 + shift[1])
 
-        pos = [(dx*i+shift[0], dy*j+shift[1]) for j in range(-1,self.h//dy+1) for i in range(-1,self.w//dx+1)]
 
         if not is_dense_pattern:
+            shift = (dx // 2 + shift[0], dy // 2 + shift[1])
+            pos = [(dx * i + shift[0], dy * j + shift[1]) for j in range(0, self.h // dy) for i in range(0, self.w // dx)]
             return pos
 
         else:
+            pos = [(dx * i + shift[0], dy * j + shift[1]) for j in range(0, self.h // dy+1) for i in range(0, self.w // dx+1)]
             pos_more = [(x + dx // 2, y + dy // 2) for (x, y) in pos]
             return pos + pos_more
 
@@ -180,14 +188,14 @@ class Layout:
 
         if not isinstance(shift, tuple):
             shift = (0,0)
-        shift = (dx//2 + shift[0], dy//2 + shift[1])
-
+        if not is_dense_pattern:
+            shift = (dx // 2 + shift[0], dy // 2 + shift[1])
 
         iter = 0
         pattern_i = first_pattern_i % imgs_len
         flip_val = 0
 
-        column_n = (self.w // dx + 2) * (1+int(is_dense_pattern))  # total number of columns
+        column_n = [self.w//dx, 2*(self.w//dx+1)][is_dense_pattern]  # total number of columns
         self.column_n = column_n
 
         for position in positions:
@@ -197,6 +205,7 @@ class Layout:
 
             else:
                 position_i = positions.index(position)
+
                 if position_i < len(positions)/2:
                     column_i = round((position[0] - shift[0]) / dx) * 2
                     row_i = round((position[1] - shift[1]) / dy) * 2
@@ -223,7 +232,6 @@ class Layout:
                     pattern_i = (pattern_i + 1) % imgs_len
 
             elif pattern_select == 'sequential_inclined_left':
-                # pattern_i = (((column_i // 2) % imgs_len - int(row_i % 2 == 1)) + row_i) % imgs_len
                 first_pattern_in_row = - (row_i//2) % imgs_len
                 pattern_i = (first_pattern_in_row + column_i//2) % imgs_len
             elif pattern_select == 'sequential_inclined_right':
@@ -378,8 +386,21 @@ class Layout_svg(Layout):
         self.mysvg_list = mysvg_list
         self.save_dict = None
 
+    def init_bg(self,savepath,bg_color):
+        bg_path = os.path.join(os.path.dirname(savepath),'init_bg.svg')
+        outf = open(bg_path, 'w')
+        outf.write(
+            ''' <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 {w} {h}" width="{w}"  height="{h}">\n''' \
+                .format(w=self.w, h=self.h))
+        outf.write('''<path style = "fill:{fill_color};" d = "M0,0 L{w},0 L{w},{h} L0,{h} L0,0 z" />\n'''\
+                   .format(fill_color=bg_color.upper(), w=self.w, h=self.h))
+        outf.write('</svg>')
+        outf.close()
 
-    def do_layout(self,savepath, style = None, DIY_params = None, save_params = False, load_params_dict = None):
+
+
+    def do_layout(self,savepath, style = None, DIY_params = None, save_params = False, load_params_dict = None,
+                  bg_color = None):
         imgs_len = len(self.mysvg_list)
 
         if style:
@@ -414,6 +435,17 @@ class Layout_svg(Layout):
         flip_use = self.flip_save
 
         tiled_svg = []
+
+        # add background
+        if bg_color:
+            if isinstance(bg_color,tuple) or isinstance(bg_color,list):
+                bg_color = "#%02X%02X%02X" % (bg_color[0], bg_color[1], bg_color[2])
+            self.init_bg(savepath,bg_color)
+            bg_path = os.path.join(os.path.dirname(savepath),'init_bg.svg')
+            bg = Mysvg(bg_path)
+            tiled_svg.append(bg)
+
+
         for i in range(len(positions_use)):
             curr_svg = deepcopy(self.mysvg_list[pattern_select_use[i]])
 
@@ -427,11 +459,13 @@ class Layout_svg(Layout):
 
         Figure(str(self.w), str(self.h), *tiled_svg).save(savepath)
 
+
+
 #%%
 # dog = Mysvg('./input_ai/dog.svg')
-# panda = Mysvg('./input_ai/panda.svg')
+# cloud = Mysvg('./input_ai/cloud.svg')
 # elephant = Mysvg('./input_ai/elephant.svg')
-# animals = [dog, panda, elephant]
+# animals = [dog, cloud, elephant]
 
 #
 # flower = Mysvg('./tiles/flower.svg')
@@ -469,7 +503,7 @@ class Layout_svg(Layout):
 # layout_svg.do_layout(style='up_up', savepath='./svg_layout/up_up.svg')
 
 # layout_svg = Layout_svg(h=600, w=1000, pattern_interval_x=150, pattern_interval_y=150, mysvg_list=[i.resize(float(50/i.width)) for i in animals])
-# layout_svg.do_layout(style='up_up_house', savepath='./input_ai/up_up_house.svg')
+# layout_svg.do_layout(style='up_up_house', savepath='./test.svg', bg_color=(255,0,0))
 
 # layout_svg = Layout_svg(h=600, w=1000, pattern_interval_x=100, pattern_interval_y=150, mysvg_list=[flower1,flower2,flower3,flower4])
 # layout_svg.do_layout(style='up_up_flower', savepath='./svg_layout/up_up_flower.svg')
