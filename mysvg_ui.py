@@ -84,7 +84,7 @@ class tkinterApp(tk.Tk):
         self.pattern_select2 = tk.StringVar()
         self.canvas_h = None
         self.canvas_w = None
-        # self.tile_h = None
+        self.tile_h = None
         self.tile_w = None
         self.pattern_interval_x = None
         self.pattern_interval_y = None
@@ -141,6 +141,8 @@ class SelectPattern(tk.Frame):
         rb3 = ttk.Radiobutton(self, text='随机排列', value='random', variable=controller.pattern_select1)
         rb3.grid(row=2, column=2, padx=16, pady=5, sticky='N')
 
+        if self.controller.pattern_select1.get():
+            self.controller.pattern_select1.set(self.controller.pattern_select1.get())
 
         button1 = ttk.Button(self, text="下一步", command=self.next_step)
         button1.grid(row=3, column=2, padx=10, pady=20, sticky='E')
@@ -169,6 +171,7 @@ class SelectPattern2(tk.Frame):
         self.rb_texts = []
         self.rb_vals = []
 
+
     def set_layout(self, title):
         ttk.Label(self, text=title, font=LARGEFONT).grid(row=0, column=0, padx=10, pady=10, columnspan=3, sticky='W')
 
@@ -183,6 +186,9 @@ class SelectPattern2(tk.Frame):
 
             ttk.Radiobutton(self, text=self.rb_texts[i], value=self.rb_vals[i], variable=self.controller.pattern_select2)\
                         .grid(row=row + 1, column=col, padx=16, pady=5, sticky='N')
+
+        if self.controller.pattern_select2.get():
+            self.controller.pattern_select2.set(self.controller.pattern_select2.get())
 
         button1 = ttk.Button(self, text="上一步",
                              command=lambda: self.controller.show_frame(SelectPattern))
@@ -199,7 +205,6 @@ class SelectPattern2(tk.Frame):
             self.controller.show_frame(SetParams)
 
     def prev_step(self):
-        self.controller.pattern_select2 = None
         self.controller.show_frame(SelectPattern)
 
 
@@ -236,7 +241,7 @@ class SetParams(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        self.controller.geometry('600x450+10+10')
+        self.controller.geometry('600x500+10+10')
 
         self.columnconfigure(0, weight=3)
         self.columnconfigure(1, weight=3)
@@ -251,19 +256,28 @@ class SetParams(tk.Frame):
         canvas_w_label.grid(row=1, column=0, sticky=tk.W, padx=10, pady=10)
         self.canvas_w_entry = ttk.Entry(self,width=10)
         self.canvas_w_entry.grid(row=1, column=1, sticky=tk.W, padx=10, pady=10)
-        self.canvas_w_entry.insert(0,'600')
+        self.canvas_w_entry.insert(0,'300')
+        if self.controller.canvas_w:
+            self.canvas_w_entry.delete(0, 'end')
+            self.canvas_w_entry.insert(0, self.controller.canvas_w)
 
         canvas_h_label = ttk.Label(self, text='×')
         canvas_h_label.grid(row=1, column=2, sticky=tk.W, pady=10)
         self.canvas_h_entry = ttk.Entry(self,width=10)
         self.canvas_h_entry.grid(row=1, column=2, sticky=tk.E, padx=20, pady=10)
-        self.canvas_h_entry.insert(0,'400')
+        self.canvas_h_entry.insert(0,'300')
+        if self.controller.canvas_h:
+            self.canvas_h_entry.delete(0, 'end')
+            self.canvas_h_entry.insert(0, self.controller.canvas_h)
 
         tile_w_label = ttk.Label(self, text='图案尺寸 (px)')
         tile_w_label.grid(row=2, column=0, sticky=tk.W, padx=10, pady=10)
         self.tile_w_entry = ttk.Entry(self,width=10)
         self.tile_w_entry.grid(row=2, column=1, sticky=tk.W, padx=10, pady=10)
         self.tile_w_entry.insert(0,'40')
+        if self.controller.tile_w:
+            self.tile_w_entry.delete(0, 'end')
+            self.tile_w_entry.insert(0, self.controller.tile_w)
 
         # tile_h_label = ttk.Label(self, text='×')
         # tile_h_label.grid(row=2, column=2, sticky=tk.W, pady=10)
@@ -275,12 +289,18 @@ class SetParams(tk.Frame):
         self.interval_x_entry = ttk.Entry(self, width=10)
         self.interval_x_entry.grid(row=3, column=1, sticky=tk.W, padx=10, pady=10)
         self.interval_x_entry.insert(0,'100')
+        if self.controller.pattern_interval_x:
+            self.interval_x_entry.delete(0, 'end')
+            self.interval_x_entry.insert(0, self.controller.pattern_interval_x)
 
         interval_y_label = ttk.Label(self, text='图案上下间距 (px)')
         interval_y_label.grid(row=4, column=0, sticky=tk.W, padx=10, pady=10)
         self.interval_y_entry = ttk.Entry(self, width=10)
         self.interval_y_entry.grid(row=4, column=1, sticky=tk.W, padx=10, pady=10)
         self.interval_y_entry.insert(0,'100')
+        if self.controller.pattern_interval_y:
+            self.interval_y_entry.delete(0, 'end')
+            self.interval_y_entry.insert(0, self.controller.pattern_interval_y)
 
         bg_label = ttk.Label(self, text='是否有背景色')
         bg_label.grid(row=5, column=0, sticky=tk.W, padx=10, pady=10)
@@ -296,6 +316,8 @@ class SetParams(tk.Frame):
         rb5 = ttk.Radiobutton(self, text='是', value='yes', variable=has_bg, width=3, command=show_color_picker)
         rb4.grid(row=5, column=1, sticky=tk.W, padx=10, pady=10)
         rb5.grid(row=5, column=1, sticky=tk.E, padx=10, pady=10)
+        has_bg.set('no')
+
 
         save_path_label = ttk.Label(self, text='花型存储地址')
         save_path_label.grid(row=6, column=0, sticky=tk.W, padx=10, pady=10)
@@ -303,19 +325,27 @@ class SetParams(tk.Frame):
         self.save_path_entry.grid(row=6, column=1, columnspan=3, sticky=tk.W, padx=10, pady=10)
         save_path_button = ttk.Button(self, text='选择', width=4, command=self.choose_save_path)
         save_path_button.grid(row=6, column=3, sticky=tk.W, padx=10)
-        self.save_path_entry.insert(0,'/Users/xiangyichen/PycharmProjects/Pattern_Design/output')
+        # self.save_path_entry.insert(0,'/Users/xiangyichen/PycharmProjects/Pattern_Design/output') # to delete
+        if self.controller.save_path:
+            self.save_path_entry.delete(0, 'end')
+            self.save_path_entry.insert(0, self.controller.save_path)
 
         save_name_label = ttk.Label(self, text='花型存储名称')
         save_name_label.grid(row=7, column=0, sticky=tk.W, padx=10, pady=10)
         self.save_name_entry = ttk.Entry(self, width=30)
         self.save_name_entry.grid(row=7, column=1, columnspan=3, sticky=tk.W, padx=10, pady=10)
-        self.save_name_entry.insert(0,'test2')
+        # self.save_name_entry.insert(0,'test2') # to delete
+        if self.controller.save_name:
+            self.save_name_entry.delete(0, 'end')
+            self.save_name_entry.insert(0, self.controller.save_name)
+
 
         dpi_label = ttk.Label(self, text='PNG保存分辨率')
         dpi_label.grid(row=8, column=0, sticky=tk.W, padx=10, pady=10)
         rb1 = ttk.Radiobutton(self, text='150', value=150, variable=self.controller.dpi,width=3)
         rb2 = ttk.Radiobutton(self, text='300', value=300, variable=self.controller.dpi,width=3)
         rb3 = ttk.Radiobutton(self, text='600', value=600, variable=self.controller.dpi,width=3)
+        self.controller.dpi.set('150')
         rb1.grid(row=8, column=1, sticky=tk.W, padx=10, pady=10)
         rb2.grid(row=8, column=1, sticky=tk.E, padx=10, pady=10)
         rb3.grid(row=8, column=2, sticky=tk.W, padx=10, pady=10)
@@ -384,7 +414,11 @@ class AddTiles(tk.Frame):
                              command=lambda: controller.show_frame(SetParams))
         self.button2 = ttk.Button(self, text="生成花型",command=self.next_step)
 
-        self.add_add_tile_row()
+        if len(self.controller.tile_paths)>0:
+            for tile_path in self.controller.tile_paths:
+                self.add_add_tile_row(tile_path)
+        else:
+            self.add_add_tile_row()
 
     def del_row(self,row_i):
         def del_row_i():
@@ -406,7 +440,7 @@ class AddTiles(tk.Frame):
     def sel_pattern(self,row_i):
         def sel_pattern_i():
             while 1:
-                chosen_path = filedialog.askopenfilename(title="选择元素",filetypes=[("Svg file","*.svg"),("AI file", "*.ai")])
+                chosen_path = filedialog.askopenfilename(title="选择元素") #,filetypes=[("Svg file","*.svg"),("AI file", "*.ai")])
                 if chosen_path.split('.')[-1] == 'ai':
                     answer = tk_mb.askyesno(title='.ai格式转换要求', message='请确保选择的ai格式文件符合以下的要求（确认后开始自动开始svg转化）：'
                                                                        '\n 1. 保存时未勾选压缩 '
@@ -435,12 +469,14 @@ class AddTiles(tk.Frame):
 
 
 
-    def add_add_tile_row(self):
+    def add_add_tile_row(self, selected_path = None):
         self.added_tile_rows += 1
 
         self.__setattr__('tiled_label' + str(self.added_tile_rows), ttk.Label(self, text='元素' + str(self.added_tile_rows)))
         self.__getattribute__('tiled_label' + str(self.added_tile_rows)).grid(row=self.added_tile_rows, column=0, sticky=tk.W, padx=10, pady=10)
         self.__setattr__('tiled_entry' + str(self.added_tile_rows), ttk.Entry(self, width=25))
+        if selected_path:
+            self.__getattribute__('tiled_entry' + str(self.added_tile_rows)).insert(0,selected_path)
         self.__getattribute__('tiled_entry' + str(self.added_tile_rows)).grid(row=self.added_tile_rows, column=1, sticky=tk.W, padx=10, pady=10)
         self.__setattr__('sel_btn' + str(self.added_tile_rows), ttk.Button(self, text='选择', width=5, command=self.sel_pattern(self.added_tile_rows)))
         self.__getattribute__('sel_btn' + str(self.added_tile_rows)).grid(row=self.added_tile_rows, column=2, sticky=tk.W, padx=1, pady=10)
@@ -454,7 +490,7 @@ class AddTiles(tk.Frame):
     def next_step(self):
         for i in range(1, self.added_tile_rows + 1):
             tile_path = self.__getattribute__('tiled_entry'+str(i)).get()
-            if tile_path:
+            if tile_path and (tile_path not in self.controller.tile_paths):
                 self.controller.tile_paths.append(tile_path)
             # print(self.controller.tile_paths)
 
@@ -462,6 +498,7 @@ class AddTiles(tk.Frame):
         for tile_path in self.controller.tile_paths:
             my_tile = mysvg.Mysvg(tile_path)
             resize = self.controller.tile_w / my_tile.width
+            self.controller.tile_h = self.controller.tile_w / my_tile.width * my_tile.height
             my_tile.resize(resize)
             my_tiles.append(my_tile)
         self.controller.tiles = my_tiles
@@ -470,13 +507,14 @@ class AddTiles(tk.Frame):
         self.controller.save_file_svg = save_file
 
 
-        layout_svg = mysvg.Layout_svg(h=self.controller.canvas_h, w=self.controller.canvas_w, mysvg_list=my_tiles,
+        layout_svg = mysvg.Layout_svg(h=self.controller.canvas_h, w=self.controller.canvas_w, mysvg_list=self.controller.tiles,
                                 pattern_interval_x=self.controller.pattern_interval_x, pattern_interval_y=self.controller.pattern_interval_x)
-        layout_svg.do_layout(style=self.controller.pattern_select2.get(), savepath=save_file, save_params=True,
+        layout_svg.do_layout(style=self.controller.pattern_select2.get(), savepath=self.controller.save_file_svg, save_params=True,
                              bg_color=self.controller.bg_color)
 
         self.controller.param_dict = layout_svg.save_dict
-        print(self.controller.param_dict)
+        print('花型生成完成，花型参数：', self.controller.param_dict)
+
         self.controller.is_dense_pattern = layout_svg.is_dense_pattern
         self.controller.column_n = layout_svg.column_n
 
@@ -491,12 +529,16 @@ class PreviewPattern(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        w = self.controller.canvas_w + 50
+        w = self.controller.canvas_w + 250
         h = self.controller.canvas_h + 500
         self.controller.geometry(str(w)+"x"+str(h)+"+10+10")
 
         label = ttk.Label(self, text="生成花型预览和微调", font=LARGEFONT)
         label.grid(row=0, column=0, padx=10, pady=10, columnspan=4, sticky='W')
+
+        button4 = ttk.Button(self, text="重新生成随机花型",command=self.random_again)
+        if self.controller.pattern_select1.get() == 'random':
+            button4.grid(row=1, column=3, columnspan=2, sticky='E', padx=10, pady=10)
 
         # test
         # png_path = './ui/test.png'
@@ -509,87 +551,119 @@ class PreviewPattern(tk.Frame):
         self.image_file = ImageTk.PhotoImage(Image.open(png_path))
         self.canvas = tk.Canvas(self, width=self.controller.canvas_w, height=self.controller.canvas_h,bg='white')
         self.canvas.create_image(0,0,anchor='nw',image=self.image_file)
-        self.canvas.grid(row=1, column=0, columnspan=8, padx=10, pady=10)
+        self.canvas.grid(row=2, column=0, columnspan=8, padx=10, pady=10)
 
         instruction_label = ttk.Label(self, text='请选择微调图案位置')
-        instruction_label.grid(row=2, column=0, sticky=tk.W, padx=10, pady=10)
+        instruction_label.grid(row=3, column=0, sticky=tk.W, padx=10, pady=10)
 
         tile_i_label = ttk.Label(self, text='第几行')
-        tile_i_label.grid(row=2, column=1, sticky=tk.W, padx=5, pady=10)
+        tile_i_label.grid(row=3, column=1, sticky=tk.W, padx=5, pady=10)
         self.tile_i_entry = ttk.Entry(self, width=4)
-        self.tile_i_entry.grid(row=2, column=2, sticky=tk.W, padx=5, pady=10)
+        self.tile_i_entry.grid(row=3, column=2, sticky=tk.W, padx=5, pady=10)
         tile_j_label = ttk.Label(self, text='第几列')
-        tile_j_label.grid(row=2, column=3, sticky=tk.W, pady=5)
+        tile_j_label.grid(row=3, column=3, sticky=tk.W, pady=5)
         self.tile_j_entry = ttk.Entry(self, width=4)
-        self.tile_j_entry.grid(row=2, column=4, sticky=tk.W, padx=5, pady=10)
+        self.tile_j_entry.grid(row=3, column=4, sticky=tk.W, padx=5, pady=10)
 
         instruction_label2 = ttk.Label(self, text='请选择微调图案参数')
-        instruction_label2.grid(row=3, column=0, sticky=tk.W, padx=10, pady=10)
+        instruction_label2.grid(row=4, column=0, sticky=tk.W, padx=10, pady=10)
 
 
         tile_path_label = ttk.Label(self, text='图案')
-        tile_path_label.grid(row=3, column=1, sticky=tk.W, padx=10, pady=10)
+        tile_path_label.grid(row=4, column=1, sticky=tk.W, padx=10, pady=10)
         self.tile_path_entry = tk.StringVar(self)
         # self.tile_path_entry.set(self.controller.tile_paths[0])
         self.tile_path_entry.set('请选择更改图案')
         tmp = ['请选择更改图案'] + self.controller.tile_paths
         tile_path_options = ttk.OptionMenu(self, self.tile_path_entry, *tmp)
         tile_path_options.config(width=15)
-        tile_path_options.grid(row=3, column=2, columnspan=3, sticky=tk.W, padx=10, pady=10)
+        tile_path_options.grid(row=4, column=2, columnspan=3, sticky=tk.W, padx=10, pady=10)
 
-        translate_x_label = ttk.Label(self, text='左右移动')
-        translate_x_label.grid(row=4, column=1, sticky=tk.W, padx=5, pady=10)
-        self.translate_x_entry = ttk.Entry(self, width=4)
-        self.translate_x_entry.grid(row=4, column=2, sticky=tk.W, padx=5, pady=10)
-        self.translate_x_entry.insert(0, '0')
+        translate_x_l_label = ttk.Label(self, text='左移')
+        translate_x_l_label.grid(row=5, column=1, sticky=tk.W, padx=5, pady=10)
+        self.translate_x_l_entry = ttk.Entry(self, width=4)
+        self.translate_x_l_entry.grid(row=5, column=2, sticky=tk.W, padx=5, pady=10)
+        self.translate_x_l_entry.insert(0, '0')
 
-        translate_y_label = ttk.Label(self, text='上下移动')
-        translate_y_label.grid(row=4, column=3, sticky=tk.W, padx=5, pady=10)
-        self.translate_y_entry = ttk.Entry(self, width=4)
-        self.translate_y_entry.grid(row=4, column=4, sticky=tk.W, padx=5, pady=10)
-        self.translate_y_entry.insert(0, '0')
+        translate_x_r_label = ttk.Label(self, text='右移')
+        translate_x_r_label.grid(row=5, column=3, sticky=tk.W, padx=5, pady=10)
+        self.translate_x_r_entry = ttk.Entry(self, width=4)
+        self.translate_x_r_entry.grid(row=5, column=4, sticky=tk.W, padx=5, pady=10)
+        self.translate_x_r_entry.insert(0, '0')
+
+        translate_y_u_label = ttk.Label(self, text='上移')
+        translate_y_u_label.grid(row=6, column=1, sticky=tk.W, padx=5, pady=10)
+        self.translate_y_u_entry = ttk.Entry(self, width=4)
+        self.translate_y_u_entry.grid(row=6, column=2, sticky=tk.W, padx=5, pady=10)
+        self.translate_y_u_entry.insert(0, '0')
+
+        translate_y_d_label = ttk.Label(self, text='下移')
+        translate_y_d_label.grid(row=6, column=3, sticky=tk.W, padx=5, pady=10)
+        self.translate_y_d_entry = ttk.Entry(self, width=4)
+        self.translate_y_d_entry.grid(row=6, column=4, sticky=tk.W, padx=5, pady=10)
+        self.translate_y_d_entry.insert(0, '0')
 
 
         rotate_label = ttk.Label(self, text='旋转')
-        rotate_label.grid(row=5, column=1, sticky=tk.W, padx=5, pady=10)
+        rotate_label.grid(row=7, column=1, sticky=tk.W, padx=5, pady=10)
         self.rotate_entry = ttk.Entry(self, width=4)
-        self.rotate_entry.grid(row=5, column=2, sticky=tk.W, padx=5, pady=10)
+        self.rotate_entry.grid(row=7, column=2, sticky=tk.W, padx=5, pady=10)
         self.rotate_entry.insert(0,'0')
 
         flip_label = ttk.Label(self, text='翻折')
-        flip_label.grid(row=5, column=3, sticky=tk.W, padx=5, pady=10)
+        flip_label.grid(row=7, column=3, sticky=tk.W, padx=5, pady=10)
         self.flip_entry = tk.StringVar(self)
         self.flip_entry.set('无')
         tmp2 = ['无','无','上下','左右']
         flip_options = ttk.OptionMenu(self, self.flip_entry, *tmp2)
         flip_options.config(width=4)
-        flip_options.grid(row=5, column=4, sticky=tk.W, padx=5, pady=10)
+        flip_options.grid(row=7, column=4, sticky=tk.W, padx=5, pady=10)
 
 
         button3 = ttk.Button(self, text="修改",
                              command=self.finetune)
-        button3.grid(row=7, column=1, sticky='W', padx=10, pady=10)
+        button3.grid(row=8, column=0, columnspan=2, sticky='E', padx=10, pady=10)
 
         button1 = ttk.Button(self, text="上一步",
                              command=self.prev_step)
-        button1.grid(row=7, column=2, columnspan=2, sticky='E', padx=10, pady=10)
+        button1.grid(row=8, column=2, columnspan=2, sticky='E', padx=10, pady=10)
 
         button2 = ttk.Button(self, text="下一步",
                              command=self.next_step)
-        button2.grid(row=7, column=4, sticky='W', padx=10, pady=10)
+        button2.grid(row=8, column=4, sticky='W', padx=10, pady=10)
+
+    def random_again(self):
+        layout_svg = mysvg.Layout_svg(h=self.controller.canvas_h, w=self.controller.canvas_w,
+                                      mysvg_list=self.controller.tiles,
+                                      pattern_interval_x=self.controller.pattern_interval_x,
+                                      pattern_interval_y=self.controller.pattern_interval_x)
+        layout_svg.do_layout(style=self.controller.pattern_select2.get(), savepath=self.controller.save_file_svg,
+                             save_params=True,
+                             bg_color=self.controller.bg_color)
+
+        self.controller.param_dict = layout_svg.save_dict
+        print('花型生成完成，花型参数：', self.controller.param_dict)
+
+        self.controller.is_dense_pattern = layout_svg.is_dense_pattern
+        self.controller.column_n = layout_svg.column_n
+
+        svg2png(self.controller.save_file_svg, dpi=float(self.controller.dpi.get()))
+
+        self.controller.show_frame(PreviewPattern)
+
+
 
     def finetune(self):
 
         new_tile_path = self.tile_path_entry.get()
         new_rotate = int(self.rotate_entry.get())
         new_flip_entry = self.flip_entry.get()
-        translate_x = -int(self.translate_x_entry.get())
-        translate_y = -int(self.translate_y_entry.get())
+        translate_x = int(self.translate_x_r_entry.get()) - int(self.translate_x_l_entry.get())
+        translate_y = int(self.translate_y_d_entry.get()) - int(self.translate_y_u_entry.get())
 
-
-        if new_tile_path == '请选择更改图案':
-            tk_mb.showwarning(message='请选择更改图案')
-            return
+        # if new_tile_path == '请选择更改图案':
+        #     tk_mb.showwarning(message='请选择更改图案')
+        #     return
 
         new_dict = self.controller.param_dict.copy()
 
@@ -598,6 +672,7 @@ class PreviewPattern(tk.Frame):
 
         length = len(self.controller.param_dict['pattern_select_saved'])
 
+        # 计算选中的图案在列花型的矩阵中排第几个
         if self.controller.is_dense_pattern:
             num_in_row = int(self.controller.column_n / 2)
             if (i-1)%2 == 0:
@@ -607,17 +682,18 @@ class PreviewPattern(tk.Frame):
         else:
             num_in_row = self.controller.column_n
             selected_index = num_in_row*(i-1) + (j-1)
-
         selected_index = int(selected_index)
-
-        new_tile_index = self.controller.tile_paths.index(new_tile_path)
 
         flip_dict = {'无':0,'左右':1,'上下':2}
         new_flip = flip_dict[new_flip_entry]
 
+        if new_tile_path != '请选择更改图案':
+            new_tile_index = self.controller.tile_paths.index(new_tile_path)
+            new_dict['pattern_select_saved'][selected_index] = new_tile_index
+
         old_pos = new_dict['positions_saved'][selected_index]
         new_dict['positions_saved'][selected_index] = (old_pos[0]+translate_x,old_pos[1]+translate_y)
-        new_dict['pattern_select_saved'][selected_index] = new_tile_index
+
         new_dict['rotate_saved'][selected_index] = (new_dict['rotate_saved'][selected_index]+new_rotate) % 360
         new_dict['flip_saved'][selected_index] = new_flip
 
@@ -633,11 +709,11 @@ class PreviewPattern(tk.Frame):
         self.controller.show_frame(PreviewPattern)
 
     def prev_step(self):
-        self.controller.tile_paths = []
         self.controller.show_frame(AddTiles)
 
     def next_step(self):
         answer = tk_mb.askyesno(title='是否进入下一步', message='一旦进入下一步（颜色编辑），不可再返回进行微调，是否进入下一步？')
+
         if answer:
             self.controller.all_colors = utility.find_all_color(*self.controller.tile_paths)
             self.controller.show_frame(EditColor)
@@ -650,7 +726,7 @@ class EditColor(tk.Frame):
 
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        self.controller.geometry('600x600+10+10')
+        self.controller.geometry('600x650+10+10')
 
         self.reduce_color_time = 0
         self.change_color_time = 0
@@ -662,6 +738,9 @@ class EditColor(tk.Frame):
 
         notebook = ttk.Notebook(self)
         notebook.grid(row=1, column=0, columnspan=5, sticky=tk.W, padx=10, pady=10)
+
+        button = ttk.Button(self, text="跳过颜色编辑", command=lambda : self.controller.show_frame(CollagePattern))
+        button.grid(row=3, column=4, padx=10, pady=10, sticky='E')
 
         self.frame1 = ttk.Frame(notebook)
         self.frame2 = ttk.Frame(notebook)
@@ -705,13 +784,29 @@ class EditColor(tk.Frame):
             locals()['canvas2' + str(i2)] = tk.Canvas(self.frame2, width=100, height=15, bg=self.controller.all_colors[i2])
             locals()['canvas2' + str(i2)].grid(row=1 + i2, column=1, padx=10, pady=3)
 
-        change_color_label = ttk.Label(self.frame2, text='变换颜色角度')
-        change_color_label.grid(row=2+i2, column=0, sticky=tk.W, padx=10, pady=10)
+        change_color_label = ttk.Label(self.frame2, text='变换色系角度')
+        change_color_label.grid(row=2+i2, column=0,columnspan=2, sticky=tk.W, padx=10, pady=5)
         self.change_color_entry = ttk.Entry(self.frame2,width=7)
-        self.change_color_entry.grid(row=2+i2, column=1, sticky=tk.W, padx=10, pady=10)
+        self.change_color_entry.insert(0,'0')
+        self.change_color_entry.grid(row=2+i2, column=1,columnspan=2, sticky=tk.W, padx=10, pady=5)
+        change_lightness_label = ttk.Label(self.frame2, text='变换亮度')
+        change_lightness_label.grid(row=3 + i2, column=0,columnspan=2, sticky=tk.W, padx=10, pady=5)
+        self.change_lightness_entry = ttk.Entry(self.frame2, width=7)
+        self.change_lightness_entry.insert(0,'1')
+        self.change_lightness_entry.grid(row=3 + i2, column=1,columnspan=2, sticky=tk.W, padx=10, pady=5)
+        change_brightness_label = ttk.Label(self.frame2, text='变换明度')
+        change_brightness_label.grid(row=4 + i2, column=0,columnspan=2, sticky=tk.W, padx=10, pady=10)
+        self.change_brightness_entry = ttk.Entry(self.frame2, width=7)
+        self.change_brightness_entry.insert(0,'1')
+        self.change_brightness_entry.grid(row=4 + i2, column=1,columnspan=2, sticky=tk.W, padx=10, pady=10)
+
         button3 = ttk.Button(self.frame2, text="变换色系预览", command=self.change_color_preview)
-        button3.grid(row=2+i2, column=2, padx=10, pady=10, sticky='W')
+        button3.grid(row=5+i2, column=1, padx=10, pady=10, sticky='W')
         self.button5 = ttk.Button(self.frame2, text="生成换色花型", command=self.replace_color('change'))
+
+        label_color_change_instruction = ttk.Label(self.frame2, text="变换色系角度：请输入0到360间的整数，表示色盘上旋转角度\n "
+                                                                     "变换亮度和变换色度：请输入0.5到2间的小数，越接近1变化越小")
+        label_color_change_instruction.grid(row=6+i2, column=0, padx=10, pady=10, columnspan=4, sticky='W')
 
         notebook.add(self.frame2, text='变换色系')
 
@@ -736,10 +831,10 @@ class EditColor(tk.Frame):
             self.__setattr__('color_change_canvas'+ str(i3),tk.Canvas(self.frame3, width=100, height=15))
 
             self.__setattr__('color_change_button' + str(i3), ttk.Button(self.frame3, width=7, text='选择颜色', command=self.edit_color_preview(i3)))
-            self.__getattribute__(('color_change_button' + str(i3))).grid(row=1 + i3, column=2, padx=3, pady=3)
+            self.__getattribute__(('color_change_button' + str(i3))).grid(row=1 + i3, column=2, columnspan=2, padx=3, pady=3)
 
         button6 = ttk.Button(self.frame3, text="确认颜色修改并重新生成花型", command=self.replace_color('edit'))
-        button6.grid(row=2 + i2, column=0, columnspan=3, padx=10, pady=10, sticky='W')
+        button6.grid(row=2 + i2, column=1, columnspan=3, padx=10, pady=10, sticky='W')
 
         notebook.add(self.frame3, text='精准变色')
 
@@ -748,26 +843,6 @@ class EditColor(tk.Frame):
     #         tk_mb.showwarning('您已进行过颜色编辑，不可再返回微调')
     #         return
     #     self.controller.show_frame(PreviewPattern)
-
-    def edit_color_preview(self, index):
-        def edit_this_color():
-            colors = askcolor(title="请选择颜色")
-            chosen_color = colors[1].upper()
-
-            self.controller.edited_colors[index] = chosen_color
-
-            self.__getattribute__('color_change_button' + str(index)).configure(text='修改颜色')
-            self.__getattribute__('color_change_button' + str(index)).grid(row=1 + index, column=4, padx=10, pady=3)
-
-            self.__getattribute__('color_change_label' + str(index)).configure(text=chosen_color)
-            self.__getattribute__('color_change_label' + str(index)).grid(row=1 + index, column=2, padx=10, pady=3)
-
-            self.__getattribute__('color_change_canvas' + str(index)).configure(bg=chosen_color)
-            self.__getattribute__('color_change_canvas' + str(index)).grid(row=1 + index, column=3, padx=10, pady=3)
-
-        return edit_this_color
-
-
 
     def reduce_color_preview(self):
         if self.controller.reduced_colors:
@@ -804,20 +879,40 @@ class EditColor(tk.Frame):
 
         color_num = len(self.controller.all_colors)
         angle = int(self.change_color_entry.get())
+        brightness = float(self.change_brightness_entry.get())
+        lightness = float(self.change_lightness_entry.get())
 
         label_color_num = ttk.Label(self.frame2, text="变换色系后对应颜色：" )
         label_color_num.grid(row=0, column=2, padx=10, pady=10, columnspan=2, sticky='W')
 
         self.controller.changed_colors = []
         for k in range(min(color_num,100)):
-            new_color = utility.change_color(self.controller.all_colors[k], a=angle)
+            new_color = utility.change_color(self.controller.all_colors[k], a=angle, l=lightness, b=brightness)
             self.controller.changed_colors.append(new_color)
             locals()['label' + str(k)] = tk.Label(self.frame2, text=new_color)
             locals()['label' + str(k)].grid(row=1 + k, column=2, padx=10, pady=3)
             locals()['canvas' + str(k)] = tk.Canvas(self.frame2, width=100, height=15, bg=new_color)
             locals()['canvas' + str(k)].grid(row=1 + k, column=3, padx=10, pady=3)
 
-        self.button5.grid(row=2 + self.i, column=3, padx=10, pady=10, sticky='W')
+        self.button5.grid(row=5 + self.i, column=2, columnspan=2, padx=10, pady=10, sticky='W')
+
+    def edit_color_preview(self, index):
+        def edit_this_color():
+            colors = askcolor(title="请选择颜色")
+            chosen_color = colors[1].upper()
+
+            self.controller.edited_colors[index] = chosen_color
+
+            self.__getattribute__('color_change_button' + str(index)).configure(text='修改颜色')
+            self.__getattribute__('color_change_button' + str(index)).grid(row=1 + index, column=4, padx=10, pady=3)
+
+            self.__getattribute__('color_change_label' + str(index)).configure(text=chosen_color)
+            self.__getattribute__('color_change_label' + str(index)).grid(row=1 + index, column=2, padx=10, pady=3)
+
+            self.__getattribute__('color_change_canvas' + str(index)).configure(bg=chosen_color)
+            self.__getattribute__('color_change_canvas' + str(index)).grid(row=1 + index, column=3, padx=10, pady=3)
+
+        return edit_this_color
 
     def replace_color(self,method):
         def do_replace_color():
@@ -827,6 +922,7 @@ class EditColor(tk.Frame):
             new_path = old_path.replace('.svg', '_'+method + str(self.__getattribute__(method+'_color_time')) + '.svg')
 
             labels = [i for i in range(len(self.controller.all_colors))]
+
             if method == 'edit':
                 utility.replace_color(old_path, self.controller.all_colors, labels,
                                       self.controller.edited_colors, new_path)
@@ -861,6 +957,7 @@ class PreviewPatternColor(tk.Frame):
         self.controller.geometry(str(w)+"x"+str(h)+"+10+10")
 
         label = ttk.Label(self, text="改色后花型预览", font=LARGEFONT)
+
         label.grid(row=0, column=0, padx=10, pady=10, columnspan=4, sticky='W')
 
         png_path = self.controller.save_file_svg_tmp.replace('svg', 'png')
@@ -884,7 +981,6 @@ class PreviewPatternColor(tk.Frame):
 
     def confirm(self):
         new_save_file_svg = filedialog.asksaveasfilename(title="选择保存花型路径",defaultextension='.svg')
-        # print('hi ',new_save_file_svg)
 
         if new_save_file_svg:
 
@@ -901,32 +997,74 @@ class PreviewPatternColor(tk.Frame):
             if self.controller.color_edited == 'change':
                 self.controller.all_colors = self.controller.changed_colors
                 self.controller.changed_colors = None
+            if self.controller.color_edited == 'edit':
+                self.controller.all_colors = self.controller.edited_colors
+                self.controller.edited_colors = None
 
-            self.controller.show_frame(EditColor)
+            answer = tk_mb.askyesno(message='是否进入下一步（无缝拼接）？\n选择否则返回上一步颜色编辑')
+            if answer:
+                self.controller.show_frame(CollagePattern)
+            else:
+                self.controller.show_frame(EditColor)
 
 
 
 
+
+class CollagePattern(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+
+        self.controller.geometry('600x300+10+10')
+
+        label = ttk.Label(self, text="无缝拼接花型预览", font=LARGEFONT)
+        label.grid(row=0, column=0, padx=10, pady=10, columnspan=3, sticky='W')
+
+        num_w_label = ttk.Label(self, text='横向重复次数')
+        num_w_label.grid(row=2, column=0, sticky=tk.W, padx=10, pady=10)
+        self.num_w_entry = ttk.Entry(self, width=4)
+        self.num_w_entry.grid(row=2, column=1, sticky=tk.W, padx=10, pady=10)
+        num_h_label = ttk.Label(self, text='纵向重复次数')
+        num_h_label.grid(row=2, column=2, sticky=tk.W, padx=10, pady=10)
+        self.num_h_entry = ttk.Entry(self, width=4)
+        self.num_h_entry.grid(row=2, column=3, sticky=tk.W, padx=10, pady=10)
+
+        button = ttk.Button(self, text='生成拼接花型', command=self.collage)
+        button.grid(row=3, column=0, columnspan=2, sticky='W', padx=10, pady=10)
+
+        button2 = ttk.Button(self, text="上一步", command=lambda: self.controller.show_frame(EditColor))
+        button2.grid(row=3, column=3, padx=10, pady=10, sticky='E')
+
+    def collage(self):
+        num_w = int(self.num_w_entry.get())
+        num_h = int(self.num_h_entry.get())
+
+        dx = int(self.controller.pattern_interval_x * (1 + int(self.controller.is_dense_pattern) * 0.4))
+        dy = int(self.controller.pattern_interval_y * (1 + int(self.controller.is_dense_pattern) * 0.4))
+
+        decent_w = int((self.controller.canvas_w // dx + 1) * dx)
+        decent_h = int((self.controller.canvas_h // dy + 1) * dy)
+
+
+        collage = mysvg.Mysvg(self.controller.save_file_svg)
+        self.controller.save_file_svg_tmp = self.controller.save_file_svg.replace('.svg','_collage.svg')
+        collage.self_collage(decent_w,decent_h,num_w,num_h,self.controller.save_file_svg_tmp)
+
+        svg2png(self.controller.save_file_svg_tmp, dpi=float(self.controller.dpi.get()))
+
+        png_path = self.controller.save_file_svg_tmp.replace('.svg','.png')
+        self.image_file = ImageTk.PhotoImage(Image.open(png_path))
+        canvas = tk.Canvas(self, width=decent_w * num_w, height=decent_h * num_h, bg='white')
+        canvas.create_image(0, 0, anchor='nw', image=self.image_file)
+        canvas.grid(row=1, column=0, columnspan=8, padx=10, pady=10)
+
+        w = decent_w * num_w + 50
+        h = decent_h * num_h + 250
+        self.controller.geometry(str(w)+'x'+str(h)+'+10+10')
 
 
 
 # Driver Code
 app = tkinterApp()
 app.mainloop()
-
-#%%
-
-#
-# class dad:
-#     def __init__(self,val):
-#         self.ddd = val
-#
-# class son:
-#     def __init__(self,mydad):
-#         self.mydad = mydad
-#
-# d = dad(2)
-# s = son(d)
-# res = s.mydad.__getattribute__('ddd')
-# print(res)
-#

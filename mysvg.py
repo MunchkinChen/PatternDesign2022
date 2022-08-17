@@ -90,12 +90,19 @@ class Mysvg(SVG):
         return self
 
     # 把自己重复好多遍
-    def seamless_concat(self):
-        pass
+    def self_collage(self,decent_w,decent_h,num_w,num_h,savepath):
+        positions = [(decent_w*i, decent_h*j) for j in range(num_h) for i in range(num_w)]
+        selves = []
+        for position in positions:
+            curr_svg = deepcopy(self)
+            curr_svg.move(*position)
+            selves.append(curr_svg)
+        Figure(decent_w*num_w, decent_h*num_h, *selves).save(savepath)
 
 
 
 
+#%%
 # mysvg = Mysvg('/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/dog.svg')
 # mysvg.resize(0.5)
 # # mysvg.save("/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/dog_flip.svg")
@@ -159,7 +166,7 @@ class Layout:
 
         if not is_dense_pattern:
             shift = (dx // 2 + shift[0], dy // 2 + shift[1])
-            pos = [(dx * i + shift[0], dy * j + shift[1]) for j in range(0, self.h // dy) for i in range(0, self.w // dx)]
+            pos = [(dx * i + shift[0], dy * j + shift[1]) for j in range(0, self.h // dy+1) for i in range(0, self.w // dx+1)]
             return pos
 
         else:

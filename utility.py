@@ -134,7 +134,7 @@ class Color:
         d_brightness = self.brightness - other.brightness
         return (d_angle,d_lightness,d_brightness)
 
-    def change_color(self,a=0,l=0,b=0): # angle, lightness, brightness
+    def change_color(self,a=0,l=1,b=1): # angle, lightness, brightness
 
         # rotate
         balanced_a = self.balance_rotate(a)
@@ -155,7 +155,8 @@ class Color:
             self.max2_color_normalized = relative_angle * 255 / 60
 
         # brightness
-        self.brightness += b
+        self.brightness = self.brightness*b
+        self.brightness = min(self.brightness, 1)
         min_color_val = 255 * self.brightness
         max2_color_val = self.max2_color_normalized * (1 - self.brightness) + 255 * self.brightness
 
@@ -165,7 +166,9 @@ class Color:
         self.__setattr__(self.max2_color + '_l', max2_color_val)
 
         # lightness
-        self.lightness += l
+        self.lightness = self.lightness*l
+        self.lightness = min(self.lightness, 1)
+
         self.R = self.R_l * self.lightness
         self.G = self.G_l * self.lightness
         self.B = self.B_l * self.lightness
@@ -228,7 +231,7 @@ class Color:
         plt.show()
 
 
-def change_color(color_RGB,a=180,b=0,l=0):
+def change_color(color_RGB,a=180,b=1,l=1):
     if color_RGB in [(0,0,0),(255,255,255),'#000000','#FFFFFF','#ffffff']:
         return color_RGB
     # cast angel to [-180,180]
@@ -242,13 +245,14 @@ def change_color(color_RGB,a=180,b=0,l=0):
         color_RGB = (int(color_RGB[1:3], base=16), int(color_RGB[3:5], base=16), int(color_RGB[5:7], base=16))
     color = Color(color_RGB[0],color_RGB[1],color_RGB[2])
 
-    b_max = 1 - color.brightness;   b_min = -color.brightness
-    l_max = 1 - color.lightness;    l_min = -color.lightness
+    # b_max = 1 - color.brightness;   b_min = -color.brightness
+    # l_max = 1 - color.lightness;    l_min = -color.lightness
+    #
+    # if not (b<=b_max and b>=b_min and l<=l_max and l>=l_min):
+    #     print('Wrong usage. b must be in range: [%d, %d]; l must be in range: [%d, %d]' %(b_min, b_max, l_min, l_max))
+    #     return
 
-    if not (b<=b_max and b>=b_min and l<=l_max and l>=l_min):
-        print('Wrong usage. b must be in range: [%d, %d]; l must be in range: [%d, %d]' %(b_min, b_max, l_min, l_max))
-        return
-    color.change_color(a,l,b)
+    color.change_color(a=a,l=l,b=b)
     if tmp_bool:
         return "#%02X%02X%02X" % (int(color.R), int(color.G), int(color.B))
 
@@ -259,8 +263,9 @@ def change_color(color_RGB,a=180,b=0,l=0):
 
 #%%
 # r = Color(255,0,0)
-# res = r.balance_rotate(-170,50)
-# print(res)
+# r.change_color(0,0,0.5)
+# r.show()
+
 
 #%%
 
@@ -290,3 +295,4 @@ def my_svg2png(svg_path,png_path,w,h,base_dir = os.path.dirname(__file__)):
 # svg_path ='/Users/xiangyichen/Desktop/tmp/test4.svg'
 # driver.get('file://'+svg_path)
 # driver.close()
+
