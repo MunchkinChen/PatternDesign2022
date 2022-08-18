@@ -28,7 +28,6 @@ def svg2png(svg_path,dpi=None,w=None,h=None):
         utility.my_svg2png(svg_path, svg_path.replace('svg', 'png'), w, h, BASE_DIR)
 
 
-
 class tkinterApp(tk.Tk):
 
     def __init__(self, *args, **kwargs):
@@ -65,6 +64,7 @@ class tkinterApp(tk.Tk):
         #     frame.grid(row=0, column=0, sticky="nsew")
 
         self.show_frame(SelectPattern)
+        # self.show_frame(PreviewPattern2)
 
     # to display the current frame passed as parameter
     def show_frame(self, cont):
@@ -99,6 +99,7 @@ class tkinterApp(tk.Tk):
         self.is_dense_pattern = None
         self.column_n = None
         self.param_dict = None
+        self.layout_object = None
         self.all_colors = None
         self.reduced_colors = None
         self.color_labels = None
@@ -107,6 +108,170 @@ class tkinterApp(tk.Tk):
         self.color_edited = False
 
 
+class PreviewPattern2(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+
+        w = self.controller.canvas_w + 250
+        h = self.controller.canvas_h + 400
+        self.controller.geometry(str(w) + "x" + str(h) + "+10+10")
+
+        self.selected = False
+        self.selected_index = None
+        self.moved_pos = []
+
+        label = ttk.Label(self, text="生成花型预览和微调", font=LARGEFONT)
+        label.grid(row=0, column=0, padx=10, pady=10, columnspan=4, sticky='W')
+
+        button_random_again = ttk.Button(self, text="重新生成随机花型", command=self.random_again)
+        if self.controller.pattern_select1.get() == 'random':
+            button_random_again.grid(row=1, column=3, columnspan=2, sticky='E', padx=10, pady=10)
+
+
+        png_path = self.controller.save_file_svg.replace('svg', 'png')
+        self.image_file = ImageTk.PhotoImage(Image.open(png_path))
+        self.canvas = tk.Canvas(self, width=self.controller.canvas_w, height=self.controller.canvas_h, bg='white')
+        self.canvas.create_image(0, 0, anchor='nw', image=self.image_file)
+        self.canvas.bind("<Button-1>", self.callback)
+        self.canvas.grid(row=2, column=0, columnspan=8, padx=10, pady=10)
+
+        self.selected_label = ttk.Label(self, text='点击以选中图中元素进行编辑')
+        self.selected_label.grid(row=3, column=0, columnspan=3, sticky='E', padx=10, pady=10)
+
+        button = ttk.Button(self, text="确认选中元素编辑", command=self.confirm_change)
+        button.grid(row=3, column=3, columnspan=2, sticky='E', padx=10, pady=10)
+
+
+        tile_path_label = ttk.Label(self, text='图案')
+        tile_path_label.grid(row=5, column=0, sticky=tk.W, padx=10, pady=10)
+        self.tile_path_entry = tk.StringVar(self)
+        # self.tile_path_entry.set(self.controller.tile_paths[0])
+        self.tile_path_entry.set('请选择更改图案')
+        tmp = ['请选择更改图案'] + self.controller.tile_paths
+        tile_path_options = ttk.OptionMenu(self, self.tile_path_entry, *tmp, command=self.change_pattern)
+        tile_path_options.config(width=22)
+        tile_path_options.grid(row=5, column=1, columnspan=3, sticky=tk.W, padx=10, pady=10)
+
+        rotate_label = ttk.Label(self, text='旋转角度')
+        rotate_label.grid(row=6, column=0, sticky=tk.W, padx=10, pady=10)
+        self.rotate_entry = ttk.Entry(self, width=4)
+        self.rotate_entry.grid(row=6, column=1, sticky=tk.W, padx=10, pady=10)
+        self.rotate_entry.insert(0, '0')
+        rotate_button = ttk.Button(self, text='确定', command=self.change_rotate)
+        rotate_button.grid(row=6, column=2, sticky=tk.W, padx=10, pady=10)
+
+        flip_label = ttk.Label(self, text='翻折')
+        flip_label.grid(row=7, column=0, sticky=tk.W, padx=10, pady=10)
+        self.flip_entry = tk.StringVar(self)
+        self.flip_entry.set('无')
+        tmp2 = ['无', '无', '上下', '左右']
+        flip_options = ttk.OptionMenu(self, self.flip_entry, *tmp2, command=self.change_flip)
+        flip_options.config(width=4)
+        flip_options.grid(row=7, column=1, sticky=tk.W, padx=10, pady=10)
+        # flip_button = ttk.Button(self, text='确定', command=self.change_flip)
+        # flip_button.grid(row=7, column=2, sticky=tk.W, padx=5, pady=10)
+
+        button1 = ttk.Button(self, text="上一步",command=self.prev_step)
+        button1.grid(row=8, column=2, columnspan=2, sticky='E', padx=10, pady=10)
+
+        button2 = ttk.Button(self, text="下一步",command=self.next_step)
+        button2.grid(row=8, column=4, sticky='W', padx=10, pady=10)
+
+
+    def refresh_canvas(self):
+
+        self.controller.layout_object.do_layout(load_params_dict=self.controller.param_dict,
+                                                savepath=self.controller.save_file_svg)
+        svg2png(self.controller.save_file_svg, float(self.controller.dpi.get()))
+        self.image_file = ImageTk.PhotoImage(Image.open(self.controller.save_file_svg.replace('.svg', '.png')))
+        self.canvas.create_image(0, 0, anchor='nw', image=self.image_file)
+
+    def change_pattern(self,event):
+        new_tile_path = self.tile_path_entry.get()
+        if new_tile_path != '请选择更改图案':
+            new_tile_index = self.controller.tile_paths.index(new_tile_path)
+            self.controller.param_dict['pattern_select_saved'][self.selected_index] = new_tile_index
+        self.refresh_canvas()
+
+    def change_rotate(self):
+        new_rotate = int(self.rotate_entry.get())
+        self.controller.param_dict['rotate_saved'][self.selected_index] += new_rotate
+        self.refresh_canvas()
+
+    def change_flip(self,event):
+        new_flip_entry = self.flip_entry.get()
+        flip_dict = {'无': 0, '左右': 1, '上下': 2}
+        new_flip = flip_dict[new_flip_entry]
+        self.controller.param_dict['flip_saved'][self.selected_index] = new_flip
+        self.refresh_canvas()
+
+
+
+    def callback(self,event):
+        if self.selected:
+            move_to = (event.x, event.y)
+            self.moved_pos.append(move_to)
+
+            (old_x, old_y) = self.controller.param_dict['positions_saved'][self.selected_index]
+            self.controller.param_dict['positions_saved'][self.selected_index] = move_to
+
+            self.refresh_canvas()
+
+            self.canvas.move('selected_box', event.x-old_x, event.y-old_y)
+
+        if not self.selected:
+
+            (i,j) = self.controller.layout_object.get_i_j(event.x, event.y)
+            # print(i,j)
+            self.selected_index = self.controller.layout_object.get_index(i,j)
+            # print(self.selected_index)
+
+            self.selected_label.configure(text='选中第{i}行，第{j}列的元素'.format(i=i,j=j))
+
+            pos = self.controller.param_dict['positions_saved'][self.selected_index]
+            x0 = pos[0] - self.controller.tile_w // 2; y0 = pos[1] - self.controller.tile_w // 2
+            x1 = pos[0] + self.controller.tile_w // 2; y1 = pos[1] + self.controller.tile_w // 2
+            self.canvas.create_rectangle(x0, y0, x1, y1, outline='grey', width=3, tag='selected_box')
+
+            self.selected = True
+
+
+    def confirm_change(self):
+        self.selected = False
+        self.canvas.delete('selected_box')
+        self.selected_label.configure(text='点击以选中图中元素进行编辑')
+
+    def random_again(self):
+        # layout_svg = mysvg.Layout_svg(h=self.controller.canvas_h, w=self.controller.canvas_w,
+        #                               mysvg_list=self.controller.tiles,
+        #                               pattern_interval_x=self.controller.pattern_interval_x,
+        #                               pattern_interval_y=self.controller.pattern_interval_x)
+        layout_svg = self.controller.layout_object
+        layout_svg.do_layout(style=self.controller.pattern_select2.get(), savepath=self.controller.save_file_svg,
+                             save_params=True,
+                             bg_color=self.controller.bg_color)
+        # self.controller.layout_object = layout_svg
+
+        self.controller.param_dict = layout_svg.save_dict
+        print('花型生成完成，花型参数：', self.controller.param_dict)
+
+        self.controller.is_dense_pattern = layout_svg.is_dense_pattern
+        self.controller.column_n = layout_svg.column_n
+
+        svg2png(self.controller.save_file_svg, dpi=float(self.controller.dpi.get()))
+
+        self.controller.show_frame(PreviewPattern2)
+
+    def prev_step(self):
+        self.controller.show_frame(AddTiles)
+
+    def next_step(self):
+        answer = tk_mb.askyesno(title='是否进入下一步', message='一旦进入下一步（颜色编辑），不可再返回进行微调，是否进入下一步？')
+
+        if answer:
+            self.controller.all_colors = utility.find_all_color(*self.controller.tile_paths)
+            self.controller.show_frame(EditColor)
 
 
 class SelectPattern(tk.Frame):
@@ -325,7 +490,7 @@ class SetParams(tk.Frame):
         self.save_path_entry.grid(row=6, column=1, columnspan=3, sticky=tk.W, padx=10, pady=10)
         save_path_button = ttk.Button(self, text='选择', width=4, command=self.choose_save_path)
         save_path_button.grid(row=6, column=3, sticky=tk.W, padx=10)
-        # self.save_path_entry.insert(0,'/Users/xiangyichen/PycharmProjects/Pattern_Design/output') # to delete
+        self.save_path_entry.insert(0,'/Users/xiangyichen/PycharmProjects/Pattern_Design/output') # to delete
         if self.controller.save_path:
             self.save_path_entry.delete(0, 'end')
             self.save_path_entry.insert(0, self.controller.save_path)
@@ -334,7 +499,7 @@ class SetParams(tk.Frame):
         save_name_label.grid(row=7, column=0, sticky=tk.W, padx=10, pady=10)
         self.save_name_entry = ttk.Entry(self, width=30)
         self.save_name_entry.grid(row=7, column=1, columnspan=3, sticky=tk.W, padx=10, pady=10)
-        # self.save_name_entry.insert(0,'test2') # to delete
+        self.save_name_entry.insert(0,'test2') # to delete
         if self.controller.save_name:
             self.save_name_entry.delete(0, 'end')
             self.save_name_entry.insert(0, self.controller.save_name)
@@ -511,6 +676,7 @@ class AddTiles(tk.Frame):
                                 pattern_interval_x=self.controller.pattern_interval_x, pattern_interval_y=self.controller.pattern_interval_x)
         layout_svg.do_layout(style=self.controller.pattern_select2.get(), savepath=self.controller.save_file_svg, save_params=True,
                              bg_color=self.controller.bg_color)
+        self.controller.layout_object = layout_svg
 
         self.controller.param_dict = layout_svg.save_dict
         print('花型生成完成，花型参数：', self.controller.param_dict)
@@ -520,7 +686,7 @@ class AddTiles(tk.Frame):
 
         svg2png(save_file,dpi=float(self.controller.dpi.get()))
 
-        self.controller.show_frame(PreviewPattern)
+        self.controller.show_frame(PreviewPattern2)
 
 
 
@@ -633,13 +799,15 @@ class PreviewPattern(tk.Frame):
         button2.grid(row=8, column=4, sticky='W', padx=10, pady=10)
 
     def random_again(self):
-        layout_svg = mysvg.Layout_svg(h=self.controller.canvas_h, w=self.controller.canvas_w,
-                                      mysvg_list=self.controller.tiles,
-                                      pattern_interval_x=self.controller.pattern_interval_x,
-                                      pattern_interval_y=self.controller.pattern_interval_x)
+        # layout_svg = mysvg.Layout_svg(h=self.controller.canvas_h, w=self.controller.canvas_w,
+        #                               mysvg_list=self.controller.tiles,
+        #                               pattern_interval_x=self.controller.pattern_interval_x,
+        #                               pattern_interval_y=self.controller.pattern_interval_x)
+        layout_svg = self.controller.layout_object
         layout_svg.do_layout(style=self.controller.pattern_select2.get(), savepath=self.controller.save_file_svg,
                              save_params=True,
                              bg_color=self.controller.bg_color)
+        # self.controller.layout_object = layout_svg
 
         self.controller.param_dict = layout_svg.save_dict
         print('花型生成完成，花型参数：', self.controller.param_dict)
@@ -670,19 +838,8 @@ class PreviewPattern(tk.Frame):
         i = int(self.tile_i_entry.get())
         j = int(self.tile_j_entry.get())
 
-        length = len(self.controller.param_dict['pattern_select_saved'])
 
-        # 计算选中的图案在列花型的矩阵中排第几个
-        if self.controller.is_dense_pattern:
-            num_in_row = int(self.controller.column_n / 2)
-            if (i-1)%2 == 0:
-                selected_index = num_in_row*int((i-1)/2) + j-1
-            else:
-                selected_index = length/2 + num_in_row*int((i-2)/2) + j-1
-        else:
-            num_in_row = self.controller.column_n
-            selected_index = num_in_row*(i-1) + (j-1)
-        selected_index = int(selected_index)
+        selected_index = self.controller.layout_object.get_index(i,j)
 
         flip_dict = {'无':0,'左右':1,'上下':2}
         new_flip = flip_dict[new_flip_entry]
@@ -699,9 +856,7 @@ class PreviewPattern(tk.Frame):
 
         self.controller.param_dict = new_dict
 
-        new_layout_svg = mysvg.Layout_svg(h=self.controller.canvas_h, w=self.controller.canvas_w, mysvg_list=self.controller.tiles,
-                                      pattern_interval_x=self.controller.pattern_interval_x,
-                                      pattern_interval_y=self.controller.pattern_interval_x)
+        new_layout_svg = self.controller.layout_object
         new_layout_svg.do_layout(style=self.controller.pattern_select2.get(), savepath=self.controller.save_file_svg, load_params_dict=new_dict)
 
         svg2png(self.controller.save_file_svg,int(self.controller.dpi.get()))

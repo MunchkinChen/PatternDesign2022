@@ -158,6 +158,8 @@ class Layout:
         # dx dy 表示pattern grid (is_dense_pattern=False时) 的间距，而不是实际上的元素间距
         dx = int(self.pattern_interval_x * (1 + int(is_dense_pattern) * 0.4))
         dy = int(self.pattern_interval_y * (1 + int(is_dense_pattern) * 0.4))
+        self.dx = dx
+        self.dy = dy
 
         # default value for shift
         if not isinstance(shift, tuple):
@@ -182,16 +184,16 @@ class Layout:
 
         self.is_dense_pattern = is_dense_pattern
 
-        # dx dy 表示pattern grid (is_dense_pattern=False时) 的间距，而不是实际上的元素间距
-        dx = int(self.pattern_interval_x * (1 + int(is_dense_pattern) * 0.4))
-        dy = int(self.pattern_interval_y * (1 + int(is_dense_pattern) * 0.4))
-
         pattern_select_save = []
         positions_save = []
         rotate_save = []
         flip_save = []
 
         positions = self.cal_pattern_pos(is_dense_pattern, shift=shift)
+        self.pos_num = len(positions)
+
+        dx = self.dx
+        dy = self.dy
 
         if not isinstance(shift, tuple):
             shift = (0,0)
@@ -202,7 +204,7 @@ class Layout:
         pattern_i = first_pattern_i % imgs_len
         flip_val = 0
 
-        column_n = [self.w//dx, 2*(self.w//dx+1)][is_dense_pattern]  # total number of columns
+        column_n = [self.w//dx+1, 2*(self.w//dx+1)][is_dense_pattern]  # total number of columns
         self.column_n = column_n
 
         for position in positions:
@@ -304,6 +306,32 @@ class Layout:
         self.pattern_select_save = pattern_select_save
         self.rotate_save = rotate_save
         self.flip_save = flip_save
+
+    def get_index(self,i,j):
+        # 计算选中的图案在列花型的矩阵中排第几个
+        if self.is_dense_pattern:
+            num_in_row = int(self.column_n / 2)
+            if (i - 1) % 2 == 0:
+                selected_index = num_in_row * int((i - 1) / 2) + j - 1
+            else:
+                selected_index = self.pos_num / 2 + num_in_row * int((i - 2) / 2) + j - 1
+        else:
+            num_in_row = self.column_n
+            selected_index = num_in_row * (i - 1) + (j - 1)
+            # print(num_in_row, i ,j, selected_index)
+        return int(selected_index)
+
+    def get_i_j(self,x,y):
+        # 计算给定位置最近的花型是几排几列
+        dx = self.dx
+        dy = self.dy
+        if not self.is_dense_pattern:
+            j = round((x - dx // 2) / dx) + 1
+            i = round((y - dy // 2) / dy) + 1
+        if self.is_dense_pattern:
+            i = round(y / (dy // 2)) + 1
+            j = [round((x - dx // 2) / dx) + 1, round(x / dx) + 1][i % 2 == 1]
+        return (i,j)
 
     def layout_up_up(self, imgs_len):
         self.cal_img_pos(imgs_len=imgs_len,
