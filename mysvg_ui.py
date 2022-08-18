@@ -1,3 +1,4 @@
+#%%
 import tkinter as tk
 import tkinter.messagebox as tk_mb
 from tkinter import ttk
@@ -26,6 +27,7 @@ def svg2png(svg_path,dpi=None,w=None,h=None):
         cairosvg.svg2png(url=svg_path, write_to=svg_path.replace('svg', 'png'), dpi=dpi)
     else:
         utility.my_svg2png(svg_path, svg_path.replace('svg', 'png'), w, h, BASE_DIR)
+
 
 
 class tkinterApp(tk.Tk):
@@ -92,12 +94,13 @@ class tkinterApp(tk.Tk):
         self.save_path = None
         self.save_name = None
         self.save_file_svg = None
+        self.save_file_svg_complete = None
         self.save_file_svg_tmp = None
         self.tile_paths = []
         self.tiles = []
         self.dpi = tk.StringVar()
-        self.is_dense_pattern = None
-        self.column_n = None
+        # self.is_dense_pattern = None
+        # self.column_n = None
         self.param_dict = None
         self.layout_object = None
         self.all_colors = None
@@ -113,13 +116,18 @@ class PreviewPattern2(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        w = self.controller.canvas_w + 250
-        h = self.controller.canvas_h + 400
+        self.complete_w = self.controller.layout_object.complete_w
+        self.complete_h = self.controller.layout_object.complete_h
+
+        w = self.complete_w + 250
+        h = self.complete_h + 400
         self.controller.geometry(str(w) + "x" + str(h) + "+10+10")
 
         self.selected = False
         self.selected_index = None
+        self.moved_index = []
         self.moved_pos = []
+        self.curr_pos = None
 
         label = ttk.Label(self, text="生成花型预览和微调", font=LARGEFONT)
         label.grid(row=0, column=0, padx=10, pady=10, columnspan=4, sticky='W')
@@ -128,11 +136,17 @@ class PreviewPattern2(tk.Frame):
         if self.controller.pattern_select1.get() == 'random':
             button_random_again.grid(row=1, column=3, columnspan=2, sticky='E', padx=10, pady=10)
 
+        self.controller.save_file_svg_complete = self.controller.save_file_svg.replace('.svg','_complete.svg')
 
-        png_path = self.controller.save_file_svg.replace('svg', 'png')
+
+        mysvg.change_viewbox(self.controller.save_file_svg, self.controller.save_file_svg_complete, 0, 0, self.complete_w, self.complete_h)
+        svg2png(self.controller.save_file_svg_complete, dpi=int(self.controller.dpi.get()))
+
+        png_path = self.controller.save_file_svg_complete.replace('svg', 'png')
         self.image_file = ImageTk.PhotoImage(Image.open(png_path))
-        self.canvas = tk.Canvas(self, width=self.controller.canvas_w, height=self.controller.canvas_h, bg='white')
+        self.canvas = tk.Canvas(self, width=self.complete_w, height=self.complete_h, bg='white')
         self.canvas.create_image(0, 0, anchor='nw', image=self.image_file)
+        self.canvas.create_rectangle(0, 0, self.controller.canvas_w, self.controller.canvas_h, outline='gray', width=2)
         self.canvas.bind("<Button-1>", self.callback)
         self.canvas.grid(row=2, column=0, columnspan=8, padx=10, pady=10)
 
@@ -181,10 +195,15 @@ class PreviewPattern2(tk.Frame):
 
     def refresh_canvas(self):
 
+
         self.controller.layout_object.do_layout(load_params_dict=self.controller.param_dict,
                                                 savepath=self.controller.save_file_svg)
         svg2png(self.controller.save_file_svg, float(self.controller.dpi.get()))
-        self.image_file = ImageTk.PhotoImage(Image.open(self.controller.save_file_svg.replace('.svg', '.png')))
+
+        mysvg.change_viewbox(self.controller.save_file_svg, self.controller.save_file_svg_complete, 0, 0, self.complete_w,self.complete_h)
+        svg2png(self.controller.save_file_svg_complete, dpi=int(self.controller.dpi.get()))
+
+        self.image_file = ImageTk.PhotoImage(Image.open(self.controller.save_file_svg_complete.replace('.svg', '.png')))
         self.canvas.create_image(0, 0, anchor='nw', image=self.image_file)
 
     def change_pattern(self,event):
@@ -206,12 +225,15 @@ class PreviewPattern2(tk.Frame):
         self.controller.param_dict['flip_saved'][self.selected_index] = new_flip
         self.refresh_canvas()
 
-
+    def in_zone(self, x, y, pos_x, pos_y):
+        res = (x >= pos_x - self.controller.tile_w // 2) and (x <= pos_x + self.controller.tile_w // 2) and \
+              (y >= pos_y - self.controller.tile_w // 2) and (y <= pos_y + self.controller.tile_w // 2)
+        return res
 
     def callback(self,event):
         if self.selected:
             move_to = (event.x, event.y)
-            self.moved_pos.append(move_to)
+            self.curr_pos = move_to
 
             (old_x, old_y) = self.controller.param_dict['positions_saved'][self.selected_index]
             self.controller.param_dict['positions_saved'][self.selected_index] = move_to
@@ -221,15 +243,24 @@ class PreviewPattern2(tk.Frame):
             self.canvas.move('selected_box', event.x-old_x, event.y-old_y)
 
         if not self.selected:
-
-            (i,j) = self.controller.layout_object.get_i_j(event.x, event.y)
-            # print(i,j)
-            self.selected_index = self.controller.layout_object.get_index(i,j)
-            # print(self.selected_index)
+            once_moved = False
+            for k in range(len(self.moved_pos)):
+                pos = self.moved_pos[k]
+                if self.in_zone(event.x, event.y, pos[0], pos[1]):
+                    self.selected_index = self.moved_index[k]
+                    (i,j) = self.controller.layout_object.get_i_j_from_index(self.selected_index)
+                    once_moved = True
+                    break
+            if not once_moved:
+                (i,j) = self.controller.layout_object.get_i_j(event.x, event.y)
+                # print(i,j)
+                self.selected_index = self.controller.layout_object.get_index(i,j)
+                # print(self.selected_index)
 
             self.selected_label.configure(text='选中第{i}行，第{j}列的元素'.format(i=i,j=j))
 
             pos = self.controller.param_dict['positions_saved'][self.selected_index]
+            self.curr_pos = pos
             x0 = pos[0] - self.controller.tile_w // 2; y0 = pos[1] - self.controller.tile_w // 2
             x1 = pos[0] + self.controller.tile_w // 2; y1 = pos[1] + self.controller.tile_w // 2
             self.canvas.create_rectangle(x0, y0, x1, y1, outline='grey', width=3, tag='selected_box')
@@ -239,6 +270,10 @@ class PreviewPattern2(tk.Frame):
 
     def confirm_change(self):
         self.selected = False
+        self.moved_index.append(self.selected_index)
+        self.moved_pos.append(self.curr_pos)
+        self.selected_index = None
+        self.curr_pos = None
         self.canvas.delete('selected_box')
         self.selected_label.configure(text='点击以选中图中元素进行编辑')
 
@@ -256,8 +291,8 @@ class PreviewPattern2(tk.Frame):
         self.controller.param_dict = layout_svg.save_dict
         print('花型生成完成，花型参数：', self.controller.param_dict)
 
-        self.controller.is_dense_pattern = layout_svg.is_dense_pattern
-        self.controller.column_n = layout_svg.column_n
+        # self.controller.is_dense_pattern = layout_svg.is_dense_pattern
+        # self.controller.column_n = layout_svg.column_n
 
         svg2png(self.controller.save_file_svg, dpi=float(self.controller.dpi.get()))
 
@@ -270,7 +305,11 @@ class PreviewPattern2(tk.Frame):
         answer = tk_mb.askyesno(title='是否进入下一步', message='一旦进入下一步（颜色编辑），不可再返回进行微调，是否进入下一步？')
 
         if answer:
-            self.controller.all_colors = utility.find_all_color(*self.controller.tile_paths)
+            if self.controller.bg_color:
+                self.controller.all_colors = [self.controller.bg_color]
+            else:
+                self.controller.all_colors = []
+            self.controller.all_colors = self.controller.all_colors + utility.find_all_color(*self.controller.tile_paths)
             self.controller.show_frame(EditColor)
 
 
@@ -681,12 +720,12 @@ class AddTiles(tk.Frame):
         self.controller.param_dict = layout_svg.save_dict
         print('花型生成完成，花型参数：', self.controller.param_dict)
 
-        self.controller.is_dense_pattern = layout_svg.is_dense_pattern
-        self.controller.column_n = layout_svg.column_n
+        # self.controller.is_dense_pattern = layout_svg.is_dense_pattern
+        # self.controller.column_n = layout_svg.column_n
 
         svg2png(save_file,dpi=float(self.controller.dpi.get()))
 
-        self.controller.show_frame(PreviewPattern2)
+        self.controller.show_frame(PreviewPattern) # todo
 
 
 
@@ -812,8 +851,8 @@ class PreviewPattern(tk.Frame):
         self.controller.param_dict = layout_svg.save_dict
         print('花型生成完成，花型参数：', self.controller.param_dict)
 
-        self.controller.is_dense_pattern = layout_svg.is_dense_pattern
-        self.controller.column_n = layout_svg.column_n
+        # self.controller.is_dense_pattern = layout_svg.is_dense_pattern
+        # self.controller.column_n = layout_svg.column_n
 
         svg2png(self.controller.save_file_svg, dpi=float(self.controller.dpi.get()))
 
@@ -1195,27 +1234,33 @@ class CollagePattern(tk.Frame):
         num_w = int(self.num_w_entry.get())
         num_h = int(self.num_h_entry.get())
 
-        dx = int(self.controller.pattern_interval_x * (1 + int(self.controller.is_dense_pattern) * 0.4))
-        dy = int(self.controller.pattern_interval_y * (1 + int(self.controller.is_dense_pattern) * 0.4))
+        # dx = int(self.controller.pattern_interval_x * (1 + int(self.controller.is_dense_pattern) * 0.4))
+        # dy = int(self.controller.pattern_interval_y * (1 + int(self.controller.is_dense_pattern) * 0.4))
+        # complete_w = int((self.controller.canvas_w // dx + 1) * dx)
+        # complete_h = int((self.controller.canvas_h // dy + 1) * dy)
 
-        decent_w = int((self.controller.canvas_w // dx + 1) * dx)
-        decent_h = int((self.controller.canvas_h // dy + 1) * dy)
+        complete_h = self.controller.layout_object.complete_h
+        complete_w = self.controller.layout_object.complete_w
 
 
         collage = mysvg.Mysvg(self.controller.save_file_svg)
         self.controller.save_file_svg_tmp = self.controller.save_file_svg.replace('.svg','_collage.svg')
-        collage.self_collage(decent_w,decent_h,num_w,num_h,self.controller.save_file_svg_tmp)
+        collage.self_collage(complete_w,complete_h,num_w,num_h,self.controller.save_file_svg_tmp)
 
         svg2png(self.controller.save_file_svg_tmp, dpi=float(self.controller.dpi.get()))
 
         png_path = self.controller.save_file_svg_tmp.replace('.svg','.png')
         self.image_file = ImageTk.PhotoImage(Image.open(png_path))
-        canvas = tk.Canvas(self, width=decent_w * num_w, height=decent_h * num_h, bg='white')
+        canvas = tk.Canvas(self, width=complete_w * num_w, height=complete_h * num_h, bg='white')
         canvas.create_image(0, 0, anchor='nw', image=self.image_file)
+        for ii in range(num_w):
+            for jj in range(num_h):
+                canvas.create_rectangle(ii*complete_w, jj*complete_h, (ii+1)*complete_w, (jj+1)*complete_h, outline='grey', width=2)
         canvas.grid(row=1, column=0, columnspan=8, padx=10, pady=10)
 
-        w = decent_w * num_w + 50
-        h = decent_h * num_h + 250
+
+        w = complete_w * num_w + 50
+        h = complete_h * num_h + 250
         self.controller.geometry(str(w)+'x'+str(h)+'+10+10')
 
 
@@ -1223,3 +1268,4 @@ class CollagePattern(tk.Frame):
 # Driver Code
 app = tkinterApp()
 app.mainloop()
+

@@ -170,22 +170,22 @@ class Scraper_UI:
         self.win.geometry("500x350+10+10")
 
         query_label = tk.Label(self.win, text='请输入关键词')
-        query_label.grid(row=1, column=0, padx=10, pady=10)
+        query_label.grid(row=1, column=0, padx=10, pady=10, sticky=tk.E)
         self.query_entry = tk.Entry(width=20)
         self.query_entry.grid(row=1, column=1, padx=10, pady=10)
 
         num_images_label = tk.Label(self.win, text='请输入爬取数量')
-        num_images_label.grid(row=2, column=0, padx=10, pady=10)
+        num_images_label.grid(row=2, column=0, padx=10, pady=10, sticky=tk.E)
         self.num_images_entry = tk.Entry(width=20)
         self.num_images_entry.grid(row=2, column=1, padx=10, pady=10)
 
         min_size_label = tk.Label(self.win, text='请输入最小图片宽度')
-        min_size_label.grid(row=3, column=0, padx=10, pady=10)
+        min_size_label.grid(row=3, column=0, padx=10, pady=10, sticky=tk.E)
         self.min_size_entry = tk.Entry(width=20)
         self.min_size_entry.grid(row=3, column=1, padx=10, pady=10)
 
         save_folder_label = tk.Label(self.win, text='图片存储地址')
-        save_folder_label.grid(row=4, column=0, sticky=tk.W, padx=10, pady=10)
+        save_folder_label.grid(row=4, column=0, sticky=tk.E, padx=10, pady=10)
         self.save_folder_entry = tk.Entry(self.win, width=20)
         self.save_folder_entry.grid(row=4, column=1,  sticky=tk.W, padx=10, pady=10)
         save_folder_button = tk.Button(self.win, text='选择', width=4, command=self.choose_save_folder)
@@ -195,7 +195,7 @@ class Scraper_UI:
         start_button.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
 
         progress_label = tk.Label(self.win, text='图片下载进度')
-        progress_label.grid(row=6, column=0, padx=10, pady=10)
+        progress_label.grid(row=6, column=0, padx=10, pady=10, sticky=tk.E)
         self.progressbar = ttk.Progressbar(self.win)
         self.progressbar.grid(row=6, column=1, columnspan=3, padx=10, pady=10)
         self.progressbar['length'] = 240

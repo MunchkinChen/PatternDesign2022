@@ -35,7 +35,19 @@ def preprocess_svg_hw(svg_path):
     tree.write(svg_path)
     return x1, y1
 
+def change_viewbox(svg_path, new_path, x0,y0,w,h):
+    tree = ET.parse(svg_path)
+    root = tree.getroot()
+    if 'viewBox' in root.attrib.keys():
+        boundaries = f"{x0} {y0} {w} {h}"
+        root.attrib['viewBox'] = boundaries
+    if 'width' in root.attrib.keys():
+        root.attrib['width'] = str(w)
+    if 'height' in root.attrib.keys():
+        root.attrib['height'] = str(h)
+    tree.write(new_path)
 
+# change_viewbox('/Users/xiangyichen/PycharmProjects/Pattern_Design/output/test2_complete.svg',0,0,500,500)
 
 
 
@@ -153,6 +165,8 @@ class Layout:
         self.w = w
         self.is_dense_pattern = None
         self.column_n = None
+        self.complete_h = None
+        self.complete_w = None
 
     def cal_pattern_pos(self, is_dense_pattern, shift=(0,0)):
         # dx dy 表示pattern grid (is_dense_pattern=False时) 的间距，而不是实际上的元素间距
@@ -160,6 +174,9 @@ class Layout:
         dy = int(self.pattern_interval_y * (1 + int(is_dense_pattern) * 0.4))
         self.dx = dx
         self.dy = dy
+
+        self.complete_w = int((self.w // dx + 1) * dx)
+        self.complete_h = int((self.h // dy + 1) * dy)
 
         # default value for shift
         if not isinstance(shift, tuple):
@@ -331,6 +348,11 @@ class Layout:
         if self.is_dense_pattern:
             i = round(y / (dy // 2)) + 1
             j = [round((x - dx // 2) / dx) + 1, round(x / dx) + 1][i % 2 == 1]
+        return (i,j)
+
+    def get_i_j_from_index(self,index):
+        i = index // self.column_n + 1
+        j = index % self.column_n + 1
         return (i,j)
 
     def layout_up_up(self, imgs_len):
