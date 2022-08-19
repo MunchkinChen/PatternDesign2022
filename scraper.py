@@ -1,3 +1,4 @@
+#%%
 import selenium
 from selenium.webdriver import Chrome
 from selenium.webdriver import ChromeOptions
@@ -7,6 +8,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
+import tkinter.font
 import sys
 # import requests
 import os
@@ -29,7 +31,9 @@ def remove_border(img_path, min_size=0):
     image = cv2.imread(img_path)
     binary_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    edges_y, edges_x = np.where(binary_image > 16)
+    # print(binary_image)
+
+    edges_y, edges_x = np.where(binary_image > 20)
     bottom = min(edges_y)
     top = max(edges_y)
     height = top - bottom
@@ -42,8 +46,14 @@ def remove_border(img_path, min_size=0):
         return False
 
     pre1_picture = image[bottom:bottom + height, left:left + width]  # 图片截取
-    cv2.imwrite(img_path, pre1_picture)
+    cv2.imwrite(img_path.replace('.','_cropped.'), pre1_picture)
+    try:
+        os.remove(img_path)
+    except:
+        pass
     return True
+
+
 
 
 def download_url_screenshot(driver, url, save_folder, min_size=0):
@@ -79,6 +89,8 @@ def scraper(query, num_images, save_folder, min_size):
     global curr_num
     curr_num = 0
 
+    print('开始爬虫')
+
     # init chromedriver
     cr_options = ChromeOptions()
     cr_options.headless = True
@@ -93,6 +105,7 @@ def scraper(query, num_images, save_folder, min_size):
     # # driver = Chrome(options=cr_options, service=s)
     cr_options.add_argument("--start-maximized")
     driver = Chrome(options=cr_options, executable_path=os.path.join(BASE_DIR, 'chromedriver'))
+    print('驱动器配置完毕')
 
 
     if not os.path.exists(os.path.join(save_folder, query)):
@@ -103,6 +116,7 @@ def scraper(query, num_images, save_folder, min_size):
     pinterest_url = f'https://www.pinterest.com/search/pins/?q={query}'
     driver.get(pinterest_url)
     time.sleep(3)
+    print('网页加载完毕')
 
     last_urls = []
 
@@ -169,6 +183,11 @@ class Scraper_UI:
         self.win.title('Pinterest 爬虫')
         self.win.geometry("500x350+10+10")
 
+        bigfont = tkinter.font.Font(size=20)
+
+        title = tk.Label(self.win, text='Pinterest 爬虫程序', font=bigfont)
+        title.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
+
         query_label = tk.Label(self.win, text='请输入关键词')
         query_label.grid(row=1, column=0, padx=10, pady=10, sticky=tk.E)
         self.query_entry = tk.Entry(width=20)
@@ -206,6 +225,8 @@ class Scraper_UI:
         chosen_path = filedialog.askdirectory(title="选择图片存储地址")
         self.save_folder_entry.delete(0, 'end')
         self.save_folder_entry.insert(tk.END, str(chosen_path))
+
+        # 8ca1b138a156155766f15444a7fe6010.png
 
     def start_scraper(self):
         self.progressbar['value'] = 0

@@ -448,9 +448,9 @@ class Layout_svg(Layout):
         outf = open(bg_path, 'w')
         outf.write(
             ''' <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 {w} {h}" width="{w}"  height="{h}">\n''' \
-                .format(w=self.w, h=self.h))
+                .format(w=self.complete_w, h=self.complete_h))
         outf.write('''<path style = "fill:{fill_color};" d = "M0,0 L{w},0 L{w},{h} L0,{h} L0,0 z" />\n'''\
-                   .format(fill_color=bg_color.upper(), w=self.w, h=self.h))
+                   .format(fill_color=bg_color.upper(), w=self.complete_w, h=self.complete_h))
         outf.write('</svg>')
         outf.close()
 
