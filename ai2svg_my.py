@@ -216,10 +216,10 @@ def ai2svg(ai_filename, svg_filename):
     inf.close()
     return 1
 
-
 #
-ai_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/bear.ai'
-svg_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/bear.svg'
-#
-ret = ai2svg(ai_filename,svg_filename)
+# #
+# ai_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/bear.ai'
+# svg_filename = '/Users/xiangyichen/PycharmProjects/Pattern_Design/input_ai/bear.svg'
+# #
+# ret = ai2svg(ai_filename,svg_filename)
 
