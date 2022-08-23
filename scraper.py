@@ -253,7 +253,7 @@ class Scraper_UI:
             self.start_button.grid(row=7, column=2, padx=10, pady=10)
 
     def open_folder(self):
-        dir = self.save_folder
+        dir = os.path.join(self.save_folder,self.query,'./')
         os.system('start ' + dir)   # windows
         # os.system('open ' + dir)  # mac
 

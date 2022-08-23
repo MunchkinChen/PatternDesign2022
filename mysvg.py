@@ -70,7 +70,7 @@ class Mysvg(SVG):
         w_str = str(self.width)
         Figure(w_str, h_str, self).save(pathname)
 
-    def rotate(self,angle=0):
+    def rotate(self, angle=0, **kwargs):
         rotate_center = (self.unresized_width//2, self.unresized_height//2)
         super(Mysvg,self).rotate(angle,x=rotate_center[0], y=rotate_center[1])
         return self
@@ -475,6 +475,8 @@ class Layout_svg(Layout):
                 save_dict['pattern_select_saved'] = self.pattern_select_save
                 save_dict['rotate_saved'] = self.rotate_save
                 save_dict['flip_saved'] = self.flip_save
+                save_dict['zoom_saved'] = [1 for i in range(len(self.positions_save))]
+
 
                 self.save_dict = save_dict
 
@@ -485,11 +487,19 @@ class Layout_svg(Layout):
             self.pattern_select_save = load_params_dict['pattern_select_saved']
             self.rotate_save = load_params_dict['rotate_saved']
             self.flip_save = load_params_dict['flip_saved']
+            if 'zoom_saved' in load_params_dict.keys():
+                self.zoom_save = load_params_dict['zoom_saved']
+
 
         positions_use = self.positions_save
         pattern_select_use = self.pattern_select_save
         rotate_use = self.rotate_save
         flip_use = self.flip_save
+        if load_params_dict and 'zoom_saved' in load_params_dict.keys():
+            zoom_use = self.zoom_save
+        else:
+            zoom_use = [1 for i in range(len(self.positions_save))]
+
 
         tiled_svg = []
 
@@ -506,10 +516,18 @@ class Layout_svg(Layout):
         for i in range(len(positions_use)):
             curr_svg = deepcopy(self.mysvg_list[pattern_select_use[i]])
 
+
+
+
             curr_svg = curr_svg.flip(flip_use[i])
-            curr_svg = curr_svg.rotate(rotate_use[i])
+            curr_svg = curr_svg.rotate(rotate_use[i], )
+
+            if zoom_use[i] != 1:
+                curr_svg = curr_svg.resize(zoom_use[i])
 
             curr_svg = curr_svg.move_center_to(*positions_use[i])
+
+
 
 
             tiled_svg.append(curr_svg)

@@ -122,7 +122,7 @@ class PreviewPattern2(tk.Frame):
         self.complete_h = self.controller.layout_object.complete_h
 
         w = self.complete_w + 250
-        h = self.complete_h + 400
+        h = self.complete_h + 450
         self.controller.geometry(str(w) + "x" + str(h) + "+10+10")
 
         self.selected = False
@@ -188,11 +188,19 @@ class PreviewPattern2(tk.Frame):
         # flip_button = ttk.Button(self, text='确定', command=self.change_flip)
         # flip_button.grid(row=7, column=2, sticky=tk.W, padx=5, pady=10)
 
+        zoom_label = ttk.Label(self, text='缩放倍数')
+        zoom_label.grid(row=8, column=0, sticky=tk.W, padx=10, pady=10)
+        self.zoom_entry = ttk.Entry(self, width=4)
+        self.zoom_entry.grid(row=8, column=1, sticky=tk.W, padx=10, pady=10)
+        self.zoom_entry.insert(0, '1')
+        zoom_button = ttk.Button(self, text='确定', command=self.change_zoom)
+        zoom_button.grid(row=8, column=2, sticky=tk.W, padx=10, pady=10)
+
         button1 = ttk.Button(self, text="上一步",command=self.prev_step)
-        button1.grid(row=8, column=2, columnspan=2, sticky='E', padx=10, pady=10)
+        button1.grid(row=9, column=2, columnspan=2, sticky='E', padx=10, pady=10)
 
         button2 = ttk.Button(self, text="下一步",command=self.next_step)
-        button2.grid(row=8, column=4, sticky='W', padx=10, pady=10)
+        button2.grid(row=9, column=4, sticky='W', padx=10, pady=10)
 
 
     def refresh_canvas(self):
@@ -220,6 +228,11 @@ class PreviewPattern2(tk.Frame):
     def change_rotate(self):
         new_rotate = int(self.rotate_entry.get())
         self.controller.param_dict['rotate_saved'][self.selected_index] += new_rotate
+        self.refresh_canvas()
+
+    def change_zoom(self):
+        new_zoom = float(self.zoom_entry.get())
+        self.controller.param_dict['zoom_saved'][self.selected_index] = new_zoom
         self.refresh_canvas()
 
     def change_flip(self,event):
@@ -273,6 +286,8 @@ class PreviewPattern2(tk.Frame):
 
 
     def confirm_change(self):
+        if not self.curr_pos:
+            return
         self.selected = False
         self.moved_index.append(self.selected_index)
         self.moved_pos.append(self.curr_pos)
@@ -464,7 +479,7 @@ class SetParams(tk.Frame):
         canvas_w_label.grid(row=1, column=0, sticky=tk.W, padx=10, pady=10)
         self.canvas_w_entry = ttk.Entry(self,width=10)
         self.canvas_w_entry.grid(row=1, column=1, sticky=tk.W, padx=10, pady=10)
-        self.canvas_w_entry.insert(0,'250')
+        self.canvas_w_entry.insert(0,'280')
         if self.controller.canvas_w:
             self.canvas_w_entry.delete(0, 'end')
             self.canvas_w_entry.insert(0, self.controller.canvas_w)
@@ -473,7 +488,7 @@ class SetParams(tk.Frame):
         canvas_h_label.grid(row=1, column=2, sticky=tk.W, pady=10)
         self.canvas_h_entry = ttk.Entry(self,width=10)
         self.canvas_h_entry.grid(row=1, column=2, sticky=tk.E, padx=20, pady=10)
-        self.canvas_h_entry.insert(0,'250')
+        self.canvas_h_entry.insert(0,'280')
         if self.controller.canvas_h:
             self.canvas_h_entry.delete(0, 'end')
             self.canvas_h_entry.insert(0, self.controller.canvas_h)
@@ -482,7 +497,7 @@ class SetParams(tk.Frame):
         tile_w_label.grid(row=2, column=0, sticky=tk.W, padx=10, pady=10)
         self.tile_w_entry = ttk.Entry(self,width=10)
         self.tile_w_entry.grid(row=2, column=1, sticky=tk.W, padx=10, pady=10)
-        self.tile_w_entry.insert(0,'40')
+        self.tile_w_entry.insert(0,'30')
         if self.controller.tile_w:
             self.tile_w_entry.delete(0, 'end')
             self.tile_w_entry.insert(0, self.controller.tile_w)
@@ -496,7 +511,7 @@ class SetParams(tk.Frame):
         interval_x_label.grid(row=3, column=0, sticky=tk.W, padx=10, pady=10)
         self.interval_x_entry = ttk.Entry(self, width=10)
         self.interval_x_entry.grid(row=3, column=1, sticky=tk.W, padx=10, pady=10)
-        self.interval_x_entry.insert(0,'100')
+        self.interval_x_entry.insert(0,'80')
         if self.controller.pattern_interval_x:
             self.interval_x_entry.delete(0, 'end')
             self.interval_x_entry.insert(0, self.controller.pattern_interval_x)
@@ -505,7 +520,7 @@ class SetParams(tk.Frame):
         interval_y_label.grid(row=4, column=0, sticky=tk.W, padx=10, pady=10)
         self.interval_y_entry = ttk.Entry(self, width=10)
         self.interval_y_entry.grid(row=4, column=1, sticky=tk.W, padx=10, pady=10)
-        self.interval_y_entry.insert(0,'100')
+        self.interval_y_entry.insert(0,'80')
         if self.controller.pattern_interval_y:
             self.interval_y_entry.delete(0, 'end')
             self.interval_y_entry.insert(0, self.controller.pattern_interval_y)
@@ -668,6 +683,8 @@ class AddTiles(tk.Frame):
                         break
                     if not answer:
                         continue
+                elif chosen_path and chosen_path.split('.')[-1] != 'svg':
+                    tk_mb.showwarning(message='添加元素格式必须为.ai或.svg，请重新选择添加元素！')
                 else:
                     break
             self.__getattribute__('tiled_entry' + str(row_i)).delete(0, 'end')
@@ -696,11 +713,16 @@ class AddTiles(tk.Frame):
         self.button2.grid(row=self.added_tile_rows + 2, column=3, padx=10, pady=10, sticky='W')
 
     def next_step(self):
+        self.controller.tile_paths = []
         for i in range(1, self.added_tile_rows + 1):
             tile_path = self.__getattribute__('tiled_entry'+str(i)).get()
             if tile_path and (tile_path not in self.controller.tile_paths):
                 self.controller.tile_paths.append(tile_path)
             # print(self.controller.tile_paths)
+
+        if len(self.controller.tile_paths) == 0:
+            tk_mb.showwarning(message='请至少添加一个元素！')
+            return
 
         my_tiles = []
         for tile_path in self.controller.tile_paths:
@@ -985,17 +1007,17 @@ class EditColor(tk.Frame):
             locals()['canvas2' + str(i2)] = tk.Canvas(self.frame2, width=100, height=15, bg=self.controller.all_colors[i2])
             locals()['canvas2' + str(i2)].grid(row=1 + i2, column=1, padx=10, pady=3)
 
-        change_color_label = ttk.Label(self.frame2, text='变换色系角度')
+        change_color_label = ttk.Label(self.frame2, text='变换色调')
         change_color_label.grid(row=2+i2, column=0,columnspan=2, sticky=tk.W, padx=10, pady=5)
         self.change_color_entry = ttk.Entry(self.frame2,width=7)
         self.change_color_entry.insert(0,'0')
         self.change_color_entry.grid(row=2+i2, column=1,columnspan=2, sticky=tk.W, padx=10, pady=5)
-        change_lightness_label = ttk.Label(self.frame2, text='变换亮度')
+        change_lightness_label = ttk.Label(self.frame2, text='变换明度')
         change_lightness_label.grid(row=3 + i2, column=0,columnspan=2, sticky=tk.W, padx=10, pady=5)
         self.change_lightness_entry = ttk.Entry(self.frame2, width=7)
         self.change_lightness_entry.insert(0,'1')
         self.change_lightness_entry.grid(row=3 + i2, column=1,columnspan=2, sticky=tk.W, padx=10, pady=5)
-        change_brightness_label = ttk.Label(self.frame2, text='变换明度')
+        change_brightness_label = ttk.Label(self.frame2, text='变换饱和度')
         change_brightness_label.grid(row=4 + i2, column=0,columnspan=2, sticky=tk.W, padx=10, pady=10)
         self.change_brightness_entry = ttk.Entry(self.frame2, width=7)
         self.change_brightness_entry.insert(0,'1')
@@ -1005,8 +1027,8 @@ class EditColor(tk.Frame):
         button3.grid(row=5+i2, column=1, padx=10, pady=10, sticky='W')
         self.button5 = ttk.Button(self.frame2, text="生成换色花型", command=self.replace_color('change'))
 
-        label_color_change_instruction = ttk.Label(self.frame2, text="变换色系角度：请输入0到360间的整数，表示色盘上旋转角度\n "
-                                                                     "变换亮度和变换色度：请输入0.5到2间的小数，越接近1变化越小")
+        label_color_change_instruction = ttk.Label(self.frame2, text="变换色调：请输入0到360间的整数，表示色盘上旋转角度\n "
+                                                                     "变换明度和变换饱和度：请输入0.5到2间的小数，越接近1变化越小")
         label_color_change_instruction.grid(row=6+i2, column=0, padx=10, pady=10, columnspan=4, sticky='W')
 
         notebook.add(self.frame2, text='变换色系')

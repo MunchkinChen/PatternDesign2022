@@ -261,21 +261,16 @@ def change_color(color_RGB,a=180,b=1,l=1):
 # res = change_color('#FF0000', a=144, l=-0.9, b=0.5)
 # print(res)
 
-#%%
-# r = Color(255,0,0)
-# r.change_color(0,0,0.5)
-# r.show()
-
 
 #%%
-
+# in case cairo doesn't work, plan b: selenium + chromedriver to crop out svg and save to png
 def my_svg2png(svg_path,png_path,w,h,base_dir = os.path.dirname(__file__)):
     cr_options = ChromeOptions()
     cr_options.headless = True
 
+    driver = Chrome(options=cr_options, executable_path=os.path.join(base_dir, 'chromedriver'))
+    driver.set_window_size(w, h)
     try:
-        driver = Chrome(options=cr_options, executable_path=os.path.join(base_dir, 'chromedriver'))
-        driver.set_window_size(w, h)
         driver.get('file://'+svg_path)
         driver.save_screenshot(png_path)
     except Exception as e:
@@ -296,3 +291,32 @@ def my_svg2png(svg_path,png_path,w,h,base_dir = os.path.dirname(__file__)):
 # driver.get('file://'+svg_path)
 # driver.close()
 
+#%%
+# def rgb_to_hsv(r, g, b):
+#     # R, G, B values are divided by 255 to change the range from 0..255 to 0..1:
+#     r, g, b = r / 255.0, g / 255.0, b / 255.0
+#     # h, s, v = hue, saturation, value
+#     cmax = max(r, g, b)
+#     cmin = min(r, g, b)
+#     diff = cmax-cmin
+#     # if cmax and cmax are equal then h = 0
+#     if cmax == cmin:
+#         h = 0
+#     # if cmax equal r then compute h
+#     elif cmax == r:
+#         h = (60 * ((g - b) / diff) + 360) % 360
+#     # if cmax equal g then compute h
+#     elif cmax == g:
+#         h = (60 * ((b - r) / diff) + 120) % 360
+#     # if cmax equal b then compute h
+#     elif cmax == b:
+#         h = (60 * ((r - g) / diff) + 240) % 360
+#     # if cmax equal zero
+#     if cmax == 0:
+#         s = 0
+#     else:
+#         s = (diff / cmax) * 100
+#     # compute v
+#     v = cmax * 100
+#     return h, s, v
+# print(rgb_to_hsv(255, 0, 0))
