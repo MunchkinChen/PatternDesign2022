@@ -9,7 +9,7 @@ import os
 
 
 
-# given a svg image, return all colors
+# 给定一张svg图，输出包含所有颜色的列表
 def find_all_color(*svg_path_list):
     color_set_all = set([])
     for svg_path in svg_path_list:
@@ -21,7 +21,7 @@ def find_all_color(*svg_path_list):
         color_set_all = color_set_all.union(color_set)
     return list(color_set_all)
 
-# given a set of colors and number of clusters, use kmeans to reduce
+# 给定一组颜色colors，用kmeans减少到num个
 def reduce_color(colors, num):
     tmp = list(colors)[0]
     if isinstance(tmp, str):
@@ -38,7 +38,7 @@ def reduce_color(colors, num):
         center_ret = [(int(round(i[0])),int(round(i[1])),int(round(i[2]))) for i in center]
     return label, center_ret
 
-# execute color reduction on a svg image
+# 给定一组源颜色，和目标颜色，实现在svg文件中的查找替换颜色
 def replace_color(svg_path,initial_colors,label,center,save_path):
     svg_content = open(svg_path, encoding='latin1').read()
 
@@ -70,6 +70,7 @@ zone_border1 = {'G':('G',2),'R':('R',2),'B':('B',2)}
 zone_border2 = {'RG':('G',1),'RB':('R',1),'GB':('B',1)}
 zone_angles = {'R1':300,'R2':0,'G1':60,'G2':120,'B1':180,'B2':240}
 
+# 自定义的颜色类，基于改良版HSV颜色模型
 class Color:
     def __init__(self,R,G,B):
         self.R = R
@@ -231,6 +232,7 @@ class Color:
         plt.show()
 
 
+# 基于上那个颜色类的改色
 def change_color(color_RGB,a=180,b=1,l=1):
     if color_RGB in [(0,0,0),(255,255,255),'#000000','#FFFFFF','#ffffff']:
         return color_RGB
